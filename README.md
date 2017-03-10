@@ -1,2 +1,2 @@
 # uofc-scraper
-UofC Scrapper
+UofC scraper
