@@ -10,7 +10,7 @@ public class scraper  {
         // Create a new instance of the Firefox driver
         // Notice that the remainder of the code relies on the interface, 
         // not the implementation.
-        System.setProperty("phantomjs.binary.path", System.getProperty("user.dir")+"/phantomjs");
+        System.setProperty("phantomjs.binary.path", System.getProperty("user.dir")+"/selenium/phantomjsdriver-1.4.0.jar");
         WebDriver driver = new PhantomJSDriver();
         // And now use this to visit Google
         driver.get("http://www.google.com");
