@@ -21,4 +21,3 @@ create_db(){
 drop_db
 create_db
 
-
