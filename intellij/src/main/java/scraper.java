@@ -1,4 +1,6 @@
 import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.Select;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,11 +16,12 @@ public class scraper {
     // And now use this to visit Google
     //driver.get("http://www.google.com");
     //stolen from ex:
-    WebDriver driver = new FirefoxDriver();
-    String baseUrl = "https://csprd.ucalgary.ca/";
+    static WebDriver driver = new ChromeDriver();
+
+    static String baseUrl = "https://csprd.ucalgary.ca/";
     //driver.manage().timeouts().implicitlyWait(30,TimeUnit.SECONDS);
 
-    public void Try() {
+    public static void try_scrape() {
         driver.get(baseUrl + "/psp/csprd/EMPLOYEE/CAMPUS/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL?AUTH=Vm02V2M0RTAxTm1aRG5jelg0Y3NNZz09");
         // ERROR: Caught exception [ERROR: Unsupported command [selectFrame | TargetContent | ]]
         new Select(driver.findElement(By.id("CLASS_SRCH_WRK2_STRM$35$"))).selectByVisibleText("2177 - Fall 2017");
@@ -51,7 +54,7 @@ public class scraper {
         driver.findElement(By.id("MTG_CLASS_NBR$0")).click();
     }
 
-    public static void main(){
-        Try();
+    public static void main(String[] argv){
+        try_scrape();
     }
 }
