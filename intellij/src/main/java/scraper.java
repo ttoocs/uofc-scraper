@@ -3,6 +3,9 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.Select;
+
+import java.util.HashMap;
+import java.util.List;
 //import org.
 
 //import io.github.bonigarcia.wdm
@@ -17,22 +20,21 @@ import org.openqa.selenium.support.ui.Select;
 public class scraper {
 
 
-    //System.setProperty("phantomjs.binary.path", System.getProperty("user.dir")+"/selenium/phantomjsdriver-1.4.0.jar");
-    //WebDriver driver = new PhantomJSDriver();
-    // And now use this to visit Google
-    //driver.get("http://www.google.com");
-    //stolen from ex:
-    // System.setProperty("webdriver.firefox.marionette","C:\\geckodriver.exe");
     static WebDriver driver = null;
 
-    static String baseUrl = "https://csprd.ucalgary.ca/";
-    //driver.manage().timeouts().implicitlyWait(30,TimeUnit.SECONDS);
-
     public static void get_access(){
+
+        //Uses the public link
         driver.get("https://csprd.ucalgary.ca/psauthent/class-search/public");
+
+        //Gets the internal iframe.
+        driver.get(driver.findElement(By.id("ptifrmtgtframe")).getAttribute("src"));
+
+
     }
 
     public static void try_scrape() {
+        String baseUrl = "https://csprd.ucalgary.ca/";
         //This was the one generated from SeleniumIDE.
         driver.get(baseUrl + "/psp/csprd/EMPLOYEE/CAMPUS/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL?AUTH=Vm02V2M0RTAxTm1aRG5jelg0Y3NNZz09");
         try {            Thread.sleep(1000);        } catch (InterruptedException e) {}
@@ -88,8 +90,7 @@ public class scraper {
         driver.findElement(By.id("MTG_CLASS_NBR$0")).click();
     }
 
-    public static void main(String[] argv){
-
+    public static void setup_driver(){
         //ChromeDriverManager.getInstance().setup();
         //InternetExplorerDriverManager.getInstance().setup();
         //OperaDriverManager.getInstance().setup();
@@ -97,12 +98,63 @@ public class scraper {
         //PhantomJsDriverManager.getInstance().setup();
         FirefoxDriverManager.getInstance().setup();
 
-
         driver = new FirefoxDriver();
+    }
 
-        get_access();
+    public static void main(String[] argv){
+
+
+        setup_driver();
+
+        //GET SEMESTERS! YAY!
+        HashMap<Integer,String> Semesters = GetSemesters();
+        HashMap<Integer,semesterData> sdata = new HashMap<Integer,semesterData>();
+
+        for(Integer semester : Semesters.keySet()){
+            semesterData data = new semesterData(semester);
+        }
+
+
 
        // try_scrape(); //The SeleniumIDE generated one.
+        driver.close();
+    }
+
+    public static HashMap<Integer,String> GetSemesters(){
+        get_access();
+        List<WebElement> elems;
+        WebElement elem;
+
+        elem = driver.findElement(By.id("CLASS_SRCH_WRK2_STRM$35$"));
+
+        elems = elem.findElements(By.tagName("option"));
+
+        //System.out.println(elem.get);     //FYI: These are useless outputs.
+        //System.out.println(elem.toString());
+        //System.out.println(elems.toString());
+
+        HashMap<Integer,String> ret = new HashMap<Integer,String>();
+
+        for (WebElement e : elems){
+
+                //By default the webpage has a empty option first.
+            if(e.getAttribute("value") == null || e.getAttribute("value").equals(""))
+                continue;
+            //Print out the found value and the string:
+            //System.out.println(e.getAttribute("value") +" : "+ e.getText());
+
+            int val = Integer.parseInt(e.getAttribute("value"));
+            String txt = e.getText().split("-")[1].trim();
+
+            ret.put(val,txt);
+
+            //Print what we just stored.
+            //System.out.println(val +" : "+ txt);
+
+        }
+
+        return ret;
 
     }
+
 }
