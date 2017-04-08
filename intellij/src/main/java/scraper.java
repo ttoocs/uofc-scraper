@@ -22,7 +22,12 @@ public class scraper {
 
     static WebDriver driver = null;
 
-    public static void get_access(){
+    //Static ID's
+    static String Term_Selection_id="CLASS_SRCH_WRK2_STRM$35$";
+    static String Subject_Selection_id="SSR_CLSRCH_WRK_SUBJECT_SRCH$0";
+
+
+    public static void get_access(WebDriver driver){
 
         //Uses the public link
         driver.get("https://csprd.ucalgary.ca/psauthent/class-search/public");
@@ -90,42 +95,46 @@ public class scraper {
         driver.findElement(By.id("MTG_CLASS_NBR$0")).click();
     }
 
-    public static void setup_driver(){
+    static boolean run_setup = false;
+    public static WebDriver setup_driver(){
         //ChromeDriverManager.getInstance().setup();
         //InternetExplorerDriverManager.getInstance().setup();
         //OperaDriverManager.getInstance().setup();
         //EdgeDriverManager.getInstance().setup();
         //PhantomJsDriverManager.getInstance().setup();
-        FirefoxDriverManager.getInstance().setup();
+        if(!run_setup)
+            FirefoxDriverManager.getInstance().setup();
 
         driver = new FirefoxDriver();
+        return driver;
     }
 
     public static void main(String[] argv){
 
 
-        setup_driver();
+        driver = setup_driver();
 
         //GET SEMESTERS! YAY!
         HashMap<Integer,String> Semesters = GetSemesters();
+
+        //Get ready for data!
         HashMap<Integer,semesterData> sdata = new HashMap<Integer,semesterData>();
 
+        //Get da https://en.wikipedia.org/wiki/File:DataTNG.jpg
         for(Integer semester : Semesters.keySet()){
             semesterData data = new semesterData(semester);
         }
 
+        //driver.quit();
 
-
-       // try_scrape(); //The SeleniumIDE generated one.
-        driver.close();
     }
 
     public static HashMap<Integer,String> GetSemesters(){
-        get_access();
+        get_access(driver);
         List<WebElement> elems;
         WebElement elem;
 
-        elem = driver.findElement(By.id("CLASS_SRCH_WRK2_STRM$35$"));
+        elem = driver.findElement(By.id(Term_Selection_id));
 
         elems = elem.findElements(By.tagName("option"));
 
@@ -152,9 +161,9 @@ public class scraper {
             //System.out.println(val +" : "+ txt);
 
         }
-
         return ret;
 
     }
+
 
 }
