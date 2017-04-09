@@ -14,7 +14,7 @@ import java.util.List;
 //import java.util.concurrent.TimeUnit;
 
 /**
- * Created by fu-fu on 3/10/17.
+ * Created/home/fu-fu by fu-fu on 3/10/17.
  */
 
 public class scraper {
@@ -123,24 +123,24 @@ public class scraper {
         //Get da https://en.wikipedia.org/wiki/File:DataTNG.jpg
         for(Integer semester : Semesters.keySet()){
             semesterData data = new semesterData(semester);
+            sdata.put(semester,data);
         }
 
-        //driver.quit();
+        sdata.get(2161).ParseSubjects();
+        driver.quit();
 
+    }
+
+
+    public static List<WebElement> getOptions(WebDriver drv, String id){
+        WebElement elem = drv.findElement(By.id(id));
+        return elem.findElements(By.tagName("option"));
     }
 
     public static HashMap<Integer,String> GetSemesters(){
         get_access(driver);
-        List<WebElement> elems;
-        WebElement elem;
 
-        elem = driver.findElement(By.id(Term_Selection_id));
-
-        elems = elem.findElements(By.tagName("option"));
-
-        //System.out.println(elem.get);     //FYI: These are useless outputs.
-        //System.out.println(elem.toString());
-        //System.out.println(elems.toString());
+        List<WebElement> elems = getOptions(driver,Term_Selection_id);
 
         HashMap<Integer,String> ret = new HashMap<Integer,String>();
 
