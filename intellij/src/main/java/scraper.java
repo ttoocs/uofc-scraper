@@ -1,7 +1,9 @@
 import io.github.bonigarcia.wdm.FirefoxDriverManager;
+import io.github.bonigarcia.wdm.PhantomJsDriverManager;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.support.ui.Select;
 
 import java.util.HashMap;
@@ -23,8 +25,19 @@ public class scraper {
     static WebDriver driver = null;
 
     //Static ID's
+    static String wait_id = "WAIT_win0";
+
+    //Search ID's
     static String Term_Selection_id="CLASS_SRCH_WRK2_STRM$35$";
     static String Subject_Selection_id="SSR_CLSRCH_WRK_SUBJECT_SRCH$0";
+
+    static String course_number_selector_id="SSR_CLSRCH_WRK_SSR_EXACT_MATCH1$1";
+    static String show_open_classes_only_id="SSR_CLSRCH_WRK_SSR_OPEN_ONLY$3";
+    static String contains_number_box_id="SSR_CLSRCH_WRK_CATALOG_NBR$1";
+    static String search_button_id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH";
+    static String search_msg_id="DERIVED_CLSMSG_ERROR_TEXT";
+
+    static int delay= 1000; //100 too small
 
 
     public static void get_access(WebDriver driver){
@@ -103,11 +116,14 @@ public class scraper {
         //EdgeDriverManager.getInstance().setup();
         //PhantomJsDriverManager.getInstance().setup();
         if(!run_setup)
+            //PhantomJsDriverManager.getInstance().setup();
             FirefoxDriverManager.getInstance().setup();
 
         driver = new FirefoxDriver();
         return driver;
     }
+
+    static HashMap<Integer,String> Semesters;
 
     public static void main(String[] argv){
 
@@ -115,7 +131,7 @@ public class scraper {
         driver = setup_driver();
 
         //GET SEMESTERS! YAY!
-        HashMap<Integer,String> Semesters = GetSemesters();
+        Semesters = GetSemesters();
 
         //Get ready for data!
         HashMap<Integer,semesterData> sdata = new HashMap<Integer,semesterData>();
@@ -123,10 +139,23 @@ public class scraper {
         //Get da https://en.wikipedia.org/wiki/File:DataTNG.jpg
         for(Integer semester : Semesters.keySet()){
             semesterData data = new semesterData(semester);
+            //data.ParseSubjects(driver);
             sdata.put(semester,data);
         }
 
-        sdata.get(2161).ParseSubjects();
+        sdata.get(2161).ParseSubjects(driver);
+
+        //SearchFor(driver,sdata.get(2161),"CPSC",42);
+
+        sdata.get(2161).getDataIterative(driver);
+
+        //try {
+        //    Thread.sleep(100000);
+        //} catch (InterruptedException e) {
+        //    e.printStackTrace();
+        //}
+
+        driver.close();
         driver.quit();
 
     }
@@ -166,4 +195,75 @@ public class scraper {
     }
 
 
+    public static void SearchFor(WebDriver drv, semesterData semester, String subject, int contains){
+
+        subject = subject.toUpperCase();
+
+        //Checks the subject string
+        boolean found = false;
+        for(String str : semester.subjects.keySet()) {
+            if(str.equals(subject)){
+                found=true;
+                break;
+            }
+        }
+
+        if(!found){
+            System.out.println("Invalid subject string: "+subject+" for semester: " +semester.semester_id);
+            System.exit(42);
+        }
+
+
+        get_access(drv);
+        semesterData.selectSemester(drv,semester.semester_id);
+
+        //Click the Open_Only (To show all classes)
+        drv.findElement(By.id(show_open_classes_only_id)).click();
+
+        //Select Subject
+        Select select = new Select(drv.findElement(By.id(Subject_Selection_id)));
+        select.selectByValue(subject);
+
+        //Select "Is exactly."
+        new Select(drv.findElement(By.id(course_number_selector_id))).selectByValue("E");
+
+        //Put in contains
+        WebElement cont =drv.findElement(By.id(contains_number_box_id));
+        cont.sendKeys(String.valueOf(contains));
+
+        drv.findElement(By.id(search_button_id)).click();
+
+        wait(drv);
+
+    }
+
+    public static void wait(WebDriver drv){
+
+        //Old:
+        /*
+        try {
+            Thread.sleep(scraper.delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }   //*/
+
+        //New-ver
+        while(true) {
+            try {
+                if (!drv.findElement(By.id(wait_id)).isDisplayed())
+                    break;
+            }catch(Exception e){
+                //If it fails, the element doesn't exist! (The true java way, try something and see if it broke).
+            }
+
+
+
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
 }
