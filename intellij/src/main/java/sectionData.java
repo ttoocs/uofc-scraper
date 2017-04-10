@@ -17,7 +17,7 @@ public class sectionData {
     int semesterID; //Link to semester
     String TAName = null;  //haha. nope.
     String InstructorName;  //Johnathan Joe.
-    int prefixNum;          //Course's number ex: 471
+    String prefixNum;          //Course's number ex: 471
     String deptName;     // CPSC/SENG
 
     String status;          //I WANT DIS.
@@ -26,7 +26,7 @@ public class sectionData {
         this.id = id;
         this.semesterID = semesterID;
     }
-    public sectionData(int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, int prefixNum, String deptName,String status){
+    public sectionData(int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
         this.id = id;
         this.type = type;
         this.subjectnum = subjectnum;

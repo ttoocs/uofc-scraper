@@ -130,6 +130,54 @@ public class semesterData {
         int numrows = Integer.parseInt(e.getText().split(" ")[0]);
         System.out.println("Found "+ numrows+ " rows.");
 
+        //Get course ID's for each row:
+        String[] prefixnums = new String[numrows];
+        String[] subNames = new String[numrows];
+
+
+        //BOXID: SSR_CLSRSLT_WRK_GROUPBOX2$0
+        int startrow= 0;
+
+        for(int i=0; i<numrows; i++){
+            WebElement test;
+            try { test = drv.findElement(By.id("win0divSSR_CLSRSLT_WRK_GROUPBOX2$" + i));
+            }catch(Exception e5){
+                if(startrow != numrows-1)
+                    System.out.println("Didn't give every row of sections number, this is probably bad. stopped at "+startrow);
+                //e5.printStackTrace();
+                break;
+            }
+
+            String classNum = null;
+            String subName = null;
+            try{
+                classNum = test.findElement(By.id("win0divSSR_CLSRSLT_WRK_GROUPBOX2GP$"+i)).getText().split("-")[0].trim().split(" ")[1].trim();
+                subName = test.findElement(By.id("win0divSSR_CLSRSLT_WRK_GROUPBOX2GP$"+i)).getText().split("-")[0].trim().split(" ")[0].trim();
+            }catch(Exception e4){
+                System.out.println("Badparse: "+test.getText());
+            }
+
+            for(int j=startrow; j<numrows; j++){
+                boolean found = false;
+                try{//Try to find it
+                    test.findElement(By.id("MTG_CLASS_NBR$"+j));
+                    found = true;
+                }catch(Exception e3) {
+                    //System.out.println("Not found");
+                }
+
+                if(found){
+                    prefixnums[j] = classNum;
+                    subNames[j] = subName;
+                    startrow=j;
+                }else{
+                    startrow=j;
+                    break;
+                }
+            }
+        }
+
+        //Get data from row
         for(int i=0; i< numrows; i++){
             //TODO: Handle when any of these don't exists. (Lots of try catch?)
             int cid = Integer.parseInt(drv.findElement(By.id("MTG_CLASS_NBR$"+i)).getText());
@@ -145,14 +193,75 @@ public class semesterData {
             String type_str = null;
             String nullstr = null;
             int type_num = 0;
+
+
             if(! semester.sections.containsKey(cid)) {
-                sectionData tmp = new sectionData(cid, type_str, type_num, time, location, semester.semester_id, nullstr, instructor, -1, nullstr,status);
+                sectionData tmp = new sectionData(cid, type_str, type_num, parseTime(time), location, semester.semester_id, nullstr, instructor, prefixnums[i], subNames[i],status);
                 semester.sections.put(cid,tmp);
                 System.out.println(tmp);
             }
 
 
         }
+    }
+    //<mon/tue/wen/thu/fri/sat/sun>,<start-time>,<end-time>
+    public static String parseTime(String timein){
+        if(timein.toLowerCase().contains("tba"))
+            return timein;
+
+        String[] days = new String[7];
+        String startTime = timein.split(" ")[1];
+        String endTime = timein.split(" ")[3];
+
+        String ret = new String();
+        boolean first = true;
+        if(timein.toLowerCase().contains("mo")){
+            ret += "mon,"+startTime+","+endTime;
+            first=false;
+        }
+        if(timein.toLowerCase().contains("tu")){
+            if(!first) {
+                ret += ".";
+                first = false;
+            }
+            ret += "tue,"+startTime+","+endTime;
+        }
+        if(timein.toLowerCase().contains("we")){
+            if(!first) {
+                ret += ".";
+                first = false;
+            }
+            ret += "wen,"+startTime+","+endTime;
+        }
+        if(timein.toLowerCase().contains("th")){
+            if(!first) {
+                ret += ".";
+                first = false;
+            }
+            ret += "thur,"+startTime+","+endTime;
+        }
+        if(timein.toLowerCase().contains("fr")){
+            if(!first) {
+                ret += ".";
+                first = false;
+            }
+            ret += "fri,"+startTime+","+endTime;
+        }
+        if(timein.toLowerCase().contains("sa")){
+            if(!first) {
+                ret += ".";
+                first = false;
+            }
+            ret += "sat,"+startTime+","+endTime;
+        }
+        if(timein.toLowerCase().contains("su")){
+            if(!first) {
+                ret += ".";
+                first = false;
+            }
+            ret += "sun,"+startTime+","+endTime;
+        }
+        return ret;
     }
 
 }
