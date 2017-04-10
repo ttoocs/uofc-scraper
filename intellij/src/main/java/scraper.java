@@ -147,14 +147,19 @@ public class scraper {
 
         //SearchFor(driver,sdata.get(2161),"CPSC",42);
 
-        sdata.get(2161).getDataIterative(driver);
+        //sdata.get(2161).getDataIterative(driver);
 
-        //try {
-        //    Thread.sleep(100000);
-        //} catch (InterruptedException e) {
-        //    e.printStackTrace();
-        //}
+        SearchFor(driver,sdata.get(2161),"CPSC",0,"G");
+        wait(driver);
+        semesterData.parseSearch(driver,sdata.get(2161),"CPSC");
 
+        /*
+        try {
+            Thread.sleep(100000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // */
         driver.close();
         driver.quit();
 
@@ -196,6 +201,14 @@ public class scraper {
 
 
     public static void SearchFor(WebDriver drv, semesterData semester, String subject, int contains){
+        SearchFor(drv,semester,subject,contains,"E");
+    }
+    //Types:
+    //E - Exactly
+    //C - Contains
+    //G - Greater than or equal to
+    //T - Less than or equal to
+    public static void SearchFor(WebDriver drv, semesterData semester, String subject, int contains, String type){
 
         subject = subject.toUpperCase();
 
@@ -225,7 +238,7 @@ public class scraper {
         select.selectByValue(subject);
 
         //Select "Is exactly."
-        new Select(drv.findElement(By.id(course_number_selector_id))).selectByValue("E");
+        new Select(drv.findElement(By.id(course_number_selector_id))).selectByValue(type);
 
         //Put in contains
         WebElement cont =drv.findElement(By.id(contains_number_box_id));
@@ -235,6 +248,14 @@ public class scraper {
 
         wait(drv);
 
+    }
+
+    public static void hitOK(WebDriver drv){
+        try{
+            drv.findElement(By.id("#ICSave")).click();
+        }catch(Exception idc){
+            //NOTHING
+        }
     }
 
     public static void wait(WebDriver drv){
@@ -249,14 +270,15 @@ public class scraper {
 
         //New-ver
         while(true) {
+
+            hitOK(drv); //OKAY IS OKAY HIT OKAY OKAY?
+
             try {
                 if (!drv.findElement(By.id(wait_id)).isDisplayed())
                     break;
             }catch(Exception e){
-                //If it fails, the element doesn't exist! (The true java way, try something and see if it broke).
+                //Well it's obviously not displayed then.
             }
-
-
 
             try {
                 Thread.sleep(10);
@@ -266,4 +288,5 @@ public class scraper {
         }
 
     }
+
 }

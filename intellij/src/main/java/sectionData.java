@@ -15,11 +15,34 @@ public class sectionData {
     String time;    // Time
     String location;
     int semesterID; //Link to semester
-    String TA_Name = null;  //haha. nope.
+    String TAName = null;  //haha. nope.
     String InstructorName;  //Johnathan Joe.
     int prefixNum;          //Course's number ex: 471
-    String deptname;     // CPSC/SENG
+    String deptName;     // CPSC/SENG
 
+    String status;          //I WANT DIS.
+
+    public sectionData(int id, int semesterID){
+        this.id = id;
+        this.semesterID = semesterID;
+    }
+    public sectionData(int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, int prefixNum, String deptName,String status){
+        this.id = id;
+        this.type = type;
+        this.subjectnum = subjectnum;
+        this.time = time;
+        this.location = location;
+        this.semesterID = semesterID;
+        this.TAName = TAName;
+        this.InstructorName = InstructorName;
+        this.prefixNum = prefixNum;
+        this.deptName = deptName;
+        this.status = status;
+    }
+
+    public String toString(){
+        return "SemesterData: "+id+":"+type+":"+subjectnum+":"+time+":"+location+":"+semesterID+":"+TAName+":"+InstructorName+":"+prefixNum+":"+deptName+":"+status;
+    }
     //Parsable:
     //Title:                                                    :   DERIVED_CLSRCH_DESCR200 (e.getText)
 
