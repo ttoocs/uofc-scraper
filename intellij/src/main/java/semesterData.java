@@ -230,45 +230,39 @@ public class semesterData {
             first=false;
         }
         if(timein.toLowerCase().contains("tu")){
-            if(!first) {
+            if(!first)
                 ret += ".";
-                first = false;
-            }
+            first = false;
             ret += "tue,"+startTime+","+endTime;
         }
         if(timein.toLowerCase().contains("we")){
-            if(!first) {
+            if(!first)
                 ret += ".";
-                first = false;
-            }
+            first = false;
             ret += "wen,"+startTime+","+endTime;
         }
         if(timein.toLowerCase().contains("th")){
-            if(!first) {
+            if(!first)
                 ret += ".";
-                first = false;
-            }
+            first = false;
             ret += "thur,"+startTime+","+endTime;
         }
         if(timein.toLowerCase().contains("fr")){
-            if(!first) {
+            if(!first)
                 ret += ".";
-                first = false;
-            }
+            first = false;
             ret += "fri,"+startTime+","+endTime;
         }
         if(timein.toLowerCase().contains("sa")){
-            if(!first) {
+            if(!first)
                 ret += ".";
-                first = false;
-            }
+            first = false;
             ret += "sat,"+startTime+","+endTime;
         }
         if(timein.toLowerCase().contains("su")){
-            if(!first) {
+            if(!first)
                 ret += ".";
-                first = false;
-            }
+            first = false;
             ret += "sun,"+startTime+","+endTime;
         }
         return ret;
