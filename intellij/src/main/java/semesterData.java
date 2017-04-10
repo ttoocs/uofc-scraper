@@ -181,19 +181,29 @@ public class semesterData {
         for(int i=0; i< numrows; i++){
             //TODO: Handle when any of these don't exists. (Lots of try catch?)
             int cid = Integer.parseInt(drv.findElement(By.id("MTG_CLASS_NBR$"+i)).getText());
-            String type = drv.findElement(By.id("MTG_CLASSNAME$"+i)).getText(); //TODO: Parse this into Lab/Tut/Lec and the corrisponding number.
-            String time = drv.findElement(By.id("MTG_DAYTIME$"+i)).getText();   //TODO: Parse this into Mon/Tue/Wen/Thur/Fri/Sat/Sun with startime and endtime.
-            String location = drv.findElement(By.id("UCSS_E010_WRK_DESCR$"+i)).getText();
-            String room = drv.findElement(By.id("MTG_ROOM$"+i)).getText();
-            String instructor = drv.findElement(By.id("MTG_INSTR$"+i)).getText();
+            String type = drv.findElement(By.id("MTG_CLASSNAME$"+i)).getText().replace("\n", ""); //TODO: Parse this into Lab/Tut/Lec and the corrisponding number.
+            String time = drv.findElement(By.id("MTG_DAYTIME$"+i)).getText().replace("\n","");   //TODO: Parse this into Mon/Tue/Wen/Thur/Fri/Sat/Sun with startime and endtime.
+            String location = drv.findElement(By.id("UCSS_E010_WRK_DESCR$"+i)).getText().replace("\n","");
+            String room = drv.findElement(By.id("MTG_ROOM$"+i)).getText().replace("\n","");
+            String instructor = drv.findElement(By.id("MTG_INSTR$"+i)).getText().replace("\n","");
             int secgrp = Integer.parseInt(drv.findElement(By.id("UCSS_E010_WRK_ASSOCIATED_CLASS$"+i)).getText());
-            String status = drv.findElement(By.id("win0divDERIVED_CLSRCH_SSR_STATUS_LONG$"+i)).findElement(By.tagName("img")).getAttribute("alt");
-            try{String restrictions = drv.findElement(By.id("UCSS_E010_WRK_HTMLAREA$"+i)).getText();}catch(Exception e2){}
+            String status = drv.findElement(By.id("win0divDERIVED_CLSRCH_SSR_STATUS_LONG$"+i)).findElement(By.tagName("img")).getAttribute("alt").replace("\n","");
+            try{String restrictions = drv.findElement(By.id("UCSS_E010_WRK_HTMLAREA$"+i)).getText().replace("\n","");}catch(Exception e2){}
 
             String type_str = null;
             String nullstr = null;
             int type_num = 0;
 
+            if(type.toLowerCase().contains("tut")){
+                type_str="tutorial";
+                type_num=Integer.parseInt(type.split("-")[0].substring(1));
+            }else if(type.toLowerCase().contains("lec")) {
+                type_str="lecture";
+                type_num=Integer.parseInt(type.split("-")[0]);
+            }else if(type.toLowerCase().contains("lab")) {
+                type_str="lab";
+                type_num=Integer.parseInt(type.split("-")[0].substring((1)));
+            }
 
             if(! semester.sections.containsKey(cid)) {
                 sectionData tmp = new sectionData(cid, type_str, type_num, parseTime(time), location, semester.semester_id, nullstr, instructor, prefixnums[i], subNames[i],status);
