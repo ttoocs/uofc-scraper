@@ -41,7 +41,7 @@ public class sectionData {
     }
 
     public String toString(){
-        return "SemesterData: "+id+":"+type+":"+subjectnum+":"+time+":"+location+":"+semesterID+":"+TAName+":"+InstructorName+":"+prefixNum+":"+deptName+":"+status;
+        return "SectionData: "+id+":"+type+":"+subjectnum+":"+time+":"+location+":"+semesterID+":"+TAName+":"+InstructorName+":"+prefixNum+":"+deptName+":"+status;
     }
     //Parsable:
     //Title:                                                    :   DERIVED_CLSRCH_DESCR200 (e.getText)

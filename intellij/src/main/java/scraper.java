@@ -7,11 +7,14 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.support.ui.Select;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 //import org.
 
 //import io.github.bonigarcia.wdm
@@ -138,15 +141,14 @@ public class scraper {
 
         setup_sql();
 
-        semesterData testdata = semesterData.loadSemester(2161);
+        //semesterData testdata = semesterData.loadSemester(2161);
         //System.out.println(q.toString());
-        //semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
+        semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
         //int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
 
-        //testdata.sections.put(42,new sectionData(42,"tut",01,"lATER","Somewhere-else",1337,"some bloke","some better bloke.","123","AWE","NOT OPEN FOR ANYONE"));
+        testdata.sections.put(42,new sectionData(42,"tut",01,"lATER","Somewhere-else",1337,"some bloke","some better bloke.","123","AWE","NOT OPEN FOR ANYONE"));
 
         if(testdata != null){
-
 
         System.out.println(testdata.toString());
 
@@ -156,7 +158,7 @@ public class scraper {
         }
 
         System.out.println("Why is life so hard. Let it run till it saves something, then kill it and try again.");
-        
+
         driver = setup_driver();
 
         //GET SEMESTERS! YAY!
@@ -378,13 +380,18 @@ public class scraper {
         }
     }
     public static void put_semester(semesterData semester){
+        
+        //Nuke the database!
+        try {
+            sqlState.execute(new Scanner(new File("database.sql")).useDelimiter("\\Z").next()); //Use the database.sql file to nuke it.
+        }catch(Exception e11){
+            e11.printStackTrace();
+        }
 
         try {
             sqlResults = sqlState.executeQuery("Select id FROM course_section WHERE id = " + semester.semester_id);
-            sqlResults.next();
-            System.out.println(sqlResults.getObject(1));
-            sqlResults.next();
-            System.out.println(sqlResults.getObject(1));
+            //Somehow check if it has the data and if not add it?
+
         }catch(Exception e11){
             e11.printStackTrace();
         }
