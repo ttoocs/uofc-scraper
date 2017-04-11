@@ -358,19 +358,50 @@ public class scraper {
             e11.printStackTrace();
         }
 
-        //Update Course-Sections
+        for(int sectID : semester.sections.keySet()) {
+            sectionData sect = semester.sections.get(sectID);
+            try {
 
-        //Update Semesters
+                //Update Course-Sections
+                //I THINK THE ORDER OF THIS IS WRONG.
 
-        //Update Teaching Assistants... (sigh)
+                //("INSERT INTO course_section VALUES(%L,%s,%s,%s,%L,%s,NULL,%L,%L,%L) ON CONFLICT DO NOTHING",
+                //   type, semester_id, section.$.name, time, section.room[0], sectionId++, section.instructor, courseNum, dept);
+                PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO course_section VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING");
+                qs.setString(1, sect.type.toUpperCase());
+                qs.setString(2, String.valueOf(sect.semesterID));
+                qs.setString(3, String.valueOf(sect.subjectnum));
+                qs.setString(4, sect.time);
+                qs.setString(5, sect.room);
+                qs.setString(6, String.valueOf(sect.semesterID));
+                qs.setString(7, sect.TAName );
+                qs.setString(8, sect.InstructorName );
+                qs.setString(9, sect.subjectnum );
+                qs.setString(10,sect.deptName);
 
-        //Update Instructors
+                //Update Semesters
+                //INSERT INTO semester VALUES(%s,%L) ON CONFLICT DO NOTHING , semester.name, semester.desc);
 
-        //Update Course.
+                //Update Teaching Assistants... (sigh)
 
-        //Update Departments.
 
-        //
+                //Update Instructors
+                //"INSERT INTO instructor VALUES(%L) ON CONFLICT DO NOTHING", name
+
+                //Update Course.
+                //("INSERT INTO course VALUES(%L,%L,%L,%L) ON CONFLICT DO NOTHING", name, name, num, dept);
+
+                //Update Departments.
+                //INSERT INTO department VALUES(%L,%L) ON CONFLICT DO NOTHING,  dept, dept)
+                //"INSERT INTO faculty_contains VALUES(%L,%L) ON CONFLICT DO NOTHING", faculty, dept);
+
+                //Faculty
+                //INSERT INTO faculty VALUES(%L) ON CONFLICT DO NOTHING, faculty
+
+            } catch (Exception e12) {
+                e12.printStackTrace();
+            }
+        }
     }
 
 }

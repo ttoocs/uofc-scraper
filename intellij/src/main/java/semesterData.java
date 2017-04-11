@@ -235,21 +235,21 @@ public class semesterData extends Thread implements Serializable{
 
             String type_str = null;
             String nullstr = null;
-            int type_num = 0;
+            String type_num = null;
 
             if(type.toLowerCase().contains("tut")){
                 type_str="tutorial";
-                type_num=Integer.parseInt(type.split("-")[0].substring(1));
+                type_num=type.split("-")[0].substring(1).trim();
             }else if(type.toLowerCase().contains("lec")) {
                 type_str="lecture";
-                type_num=Integer.parseInt(type.split("-")[0]);
+                type_num=type.split("-")[0].trim();
             }else if(type.toLowerCase().contains("lab")) {
                 type_str="lab";
-                type_num=Integer.parseInt(type.split("-")[0].substring((1)));
+                type_num=type.split("-")[0].substring((1)).trim();
             }
 
             if(! semester.sections.containsKey(cid)) {
-                sectionData tmp = new sectionData(cid, type_str, type_num, parseTime(time), location, semester.semester_id, nullstr, instructor, prefixnums[i], subNames[i],status);
+                sectionData tmp = new sectionData(cid, type_str, type_num, parseTime(time), room,location, semester.semester_id, nullstr, instructor, prefixnums[i], subNames[i],status);
                 semester.sections.put(cid,tmp);
                 System.out.println(tmp);
             }

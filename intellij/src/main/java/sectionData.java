@@ -11,8 +11,9 @@ public class sectionData {
 
     int id;
     String type; //lec, tut, lab
-    int subjectnum; // 01B but just the number.
+    String subjectnum; // 01B but just the number.
     String time;    // Time
+    String room;    // Room
     String location;
     int semesterID; //Link to semester
     String TAName = null;  //haha. nope.
@@ -26,11 +27,12 @@ public class sectionData {
         this.id = id;
         this.semesterID = semesterID;
     }
-    public sectionData(int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
+    public sectionData(int id, String type, String subjectnum, String time, String room, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
         this.id = id;
         this.type = type;
         this.subjectnum = subjectnum;
         this.time = time;
+        this.room = room;
         this.location = location;
         this.semesterID = semesterID;
         this.TAName = TAName;
