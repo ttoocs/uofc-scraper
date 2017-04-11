@@ -139,25 +139,26 @@ public class scraper {
 
     public static void main(String[] argv){
 
-        setup_sql();
+        boolean SQLFUN = false;
+        if(SQLFUN) {
+            setup_sql();
 
-        //semesterData testdata = semesterData.loadSemester(2161);
-        //System.out.println(q.toString());
-        semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
-        //int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
+            //semesterData testdata = semesterData.loadSemester(2161);
+            //System.out.println(q.toString());
+            semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
+            //int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
 
-        testdata.sections.put(42,new sectionData(42,"tut",01,"lATER","Somewhere-else",1337,"some bloke","some better bloke.","123","AWE","NOT OPEN FOR ANYONE"));
+            testdata.sections.put(42, new sectionData(42, "tut", 01, "lATER", "Somewhere-else", 1337, "some bloke", "some better bloke.", "123", "AWE", "NOT OPEN FOR ANYONE"));
 
-        if(testdata != null){
+            if (testdata != null) {
 
-        System.out.println(testdata.toString());
+                System.out.println(testdata.toString());
 
-        put_semester(testdata);
+                put_semester(testdata);
 
-        System.exit(0);
+                System.exit(0);
+            }
         }
-
-        System.out.println("Why is life so hard. Let it run till it saves something, then kill it and try again.");
 
         driver = setup_driver();
 
@@ -169,55 +170,16 @@ public class scraper {
 
         //Get da https://en.wikipedia.org/wiki/File:DataTNG.jpg
         for(Integer semester : Semesters.keySet()){
-            semesterData data = new semesterData(semester);
-            sdata.put(semester,data);
-        }
+            semesterData s = new semesterData(semester);
+            semesterData r = semesterData.loadSemester(semester);
 
-        //Put this in multiple threads..?
-        //HashSet<Thread> threads = new HashSet<Thread>();
-        for(Integer semesterID : sdata.keySet()) {
-            semesterData s = sdata.get(semesterID);
-            /*
-            Thread t = new Thread(s);
-            threads.add(t);
-            t.start();
-            */
-            /*
-            semesterData r = semesterData.loadSemester(semesterID);
-            if(r != null){
+            if(r != null && r.complete){    //Try to load if available.
                 s=r;
             }else {
-            */
                 s.run(driver);
-
-            //}
-            //put_semester(s);
-            //System.exit(0);
+            }
+            sdata.put(semester,s);
         }
-
-
-        /*
-        for(Thread t : threads){
-            try{t.join();}catch(Exception rawr){}
-        }
-         // */
-
-
-        /*
-        SearchFor(driver,sdata.get(2161),"CPSC",0,"G");
-        wait(driver);
-        semesterData.parseSearch(driver,sdata.get(PhantomJSDriver(); 2161),"CPSC");
-        */
-
-        /*
-        try {
-            Thread.sleep(100000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        // */
-
-
 
         try {
             driver.close();
@@ -380,7 +342,7 @@ public class scraper {
         }
     }
     public static void put_semester(semesterData semester){
-        
+
         //Nuke the database!
         try {
             sqlState.execute(new Scanner(new File("database.sql")).useDelimiter("\\Z").next()); //Use the database.sql file to nuke it.

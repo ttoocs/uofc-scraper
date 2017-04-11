@@ -10,6 +10,7 @@ import java.util.List;
  */
 public class semesterData extends Thread implements Serializable{
     int semester_id;
+    boolean complete;
     HashMap<String,String> subjects = new HashMap<String,String>();
     HashMap<Integer,sectionData> sections= new HashMap<Integer,sectionData>();
     HashMap<Integer,classData> classes= new HashMap<Integer,classData>();
@@ -25,6 +26,7 @@ public class semesterData extends Thread implements Serializable{
 
     public semesterData(int semester_id){
         this.semester_id = semester_id;
+        complete = false;
     }
 
     public void run(){
@@ -35,6 +37,8 @@ public class semesterData extends Thread implements Serializable{
 
         this.ParseSubjects(drv);
         this.getData(drv);
+        this.complete = true;
+        semesterData.saveSemester(this);
 
     }
 
@@ -91,7 +95,7 @@ public class semesterData extends Thread implements Serializable{
                 }
 
             }
-            semesterData.saveSemester(semester);
+
         }
 
     }
@@ -316,9 +320,9 @@ public class semesterData extends Thread implements Serializable{
     public static semesterData loadSemester(int lid){
         semesterData sem = null;
         try {
-            System.out.println("Loading semester: "+lid+".obj");
             ObjectInputStream in = new ObjectInputStream(new FileInputStream(new File(lid+".obj")));
             sem = (semesterData) in.readObject();
+            System.out.println("Loading semester: "+lid+".obj");
         }catch(Exception e4){
             //e4.printStackTrace();
         }
