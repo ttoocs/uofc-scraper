@@ -91,6 +91,10 @@ public class semesterData extends Thread implements Serializable{
                     String err = drv.findElement(By.id(scraper.search_msg_id)).getText();
                     if (err.toLowerCase().contains("no results"))
                         continue;
+                    if(err.toLowerCase().contains("limit of 250 sections")){
+                        getSubjectIterative(drv,semester,subject); //Fallback to iteration
+                        break;
+                    }
                 } catch (NoSuchElementException e) {
                 }
 
@@ -100,23 +104,25 @@ public class semesterData extends Thread implements Serializable{
 
     }
 
+    public static void getSubjectIterative(WebDriver drv, semesterData semester, String subject){
+        for(int i=1; i<1000; i++){
+            scraper.SearchFor(drv,semester,subject,i);
+            try {
+                String err = drv.findElement(By.id(scraper.search_msg_id)).getText();
+                if (err.toLowerCase().contains("no results"))
+                    continue;
+            }catch(NoSuchElementException e){
+                //Oh good, there was no error, this is something we actually want!
+                System.out.println("Found course: "+scraper.Semesters.get(semester.semester_id)+" "+subject+" "+i);
+            }
+            parseSearch(drv,semester,subject);
+        }
+
+    }
     public static void getDataIterative(WebDriver drv, semesterData semester){
 
         for(String subject : semester.subjects.keySet()){
-            for(int i=1; i<1000; i++){
-                scraper.SearchFor(drv,semester,subject,i);
-
-                try {
-                    String err = drv.findElement(By.id(scraper.search_msg_id)).getText();
-                    if (err.toLowerCase().contains("no results"))
-                        continue;
-                }catch(NoSuchElementException e){
-                    //Oh good, there was no error, this is something we actually want!
-                    System.out.println("Found course: "+scraper.Semesters.get(semester.semester_id)+" "+subject+" "+i);
-                }
-
-                parseSearch(drv,semester,subject);
-            }
+            getSubjectIterative(drv,semester,subject);
         }
     }
 
