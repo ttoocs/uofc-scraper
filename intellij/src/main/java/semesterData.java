@@ -1,13 +1,14 @@
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.Select;
 
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by scott.saunders on 4/8/17.
  */
-public class semesterData {
+public class semesterData extends Thread implements Serializable{
     int semester_id;
     HashMap<String,String> subjects = new HashMap<String,String>();
     HashMap<Integer,sectionData> sections= new HashMap<Integer,sectionData>();
@@ -18,13 +19,22 @@ public class semesterData {
         //scraper.get_access(drv);
         //Select the class.
         new Select(drv.findElement(By.id(scraper.Term_Selection_id))).selectByValue(String.valueOf(semester_id));
-
         scraper.wait(drv);
 
     }
 
     public semesterData(int semester_id){
         this.semester_id = semester_id;
+    }
+
+    public void run(){
+        WebDriver drv = scraper.setup_driver();
+        run(drv);
+    }
+    public void run(WebDriver drv){
+
+        this.ParseSubjects(drv);
+        this.getData(drv);
 
     }
 
@@ -59,8 +69,31 @@ public class semesterData {
 
     }
 
-    public void getDataIterative(WebDriver drv){
-        getDataIterative(drv,this);
+    public void getData(){
+        getData2(null,this);
+    }
+    public void getData(WebDriver drv){
+        getData2(drv,this);
+    }
+
+    public static void getData2(WebDriver drv, semesterData semester){
+        if(drv == null){
+            drv = scraper.setup_driver();
+        }
+        for(String subject : semester.subjects.keySet()) {
+            for (int i = 0; i < 10; i++) { //Does it contain a 0? How about 1...
+                scraper.SearchFor(drv, semester, subject, i, "C");
+                try {
+                    String err = drv.findElement(By.id(scraper.search_msg_id)).getText();
+                    if (err.toLowerCase().contains("no results"))
+                        continue;
+                } catch (NoSuchElementException e) {
+                }
+
+            }
+            semesterData.saveSemester(semester);
+        }
+
     }
 
     public static void getDataIterative(WebDriver drv, semesterData semester){
@@ -268,4 +301,34 @@ public class semesterData {
         return ret;
     }
 
+    public static void saveSemester(semesterData sem){
+        try {
+            System.out.println("Saving semester: "+sem.semester_id+".obj");
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(new File(sem.semester_id+".obj")));
+            out.writeObject(sem);
+            out.flush();
+            out.close();
+
+        }catch(Exception e3){
+            e3.printStackTrace();
+        }
+    }
+    public static semesterData loadSemester(int lid){
+        semesterData sem = null;
+        try {
+            System.out.println("Loading semester: "+lid+".obj");
+            ObjectInputStream in = new ObjectInputStream(new FileInputStream(new File(lid+".obj")));
+            sem = (semesterData) in.readObject();
+        }catch(Exception e4){
+            //e4.printStackTrace();
+        }
+        return(sem);
+    }
+    public String toString(){
+        String ret = new String();
+        for( int i : sections.keySet()){
+            ret += sections.get(i).toString() +"\n";
+        }
+        return ret;
+    }
 }

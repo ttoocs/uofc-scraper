@@ -1,3 +1,4 @@
+import io.github.bonigarcia.wdm.ChromeDriverManager;
 import io.github.bonigarcia.wdm.FirefoxDriverManager;
 import io.github.bonigarcia.wdm.PhantomJsDriverManager;
 import org.openqa.selenium.*;
@@ -6,7 +7,10 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.support.ui.Select;
 
+import java.io.ObjectOutputStream;
+import java.sql.*;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 //import org.
 
@@ -115,11 +119,16 @@ public class scraper {
         //OperaDriverManager.getInstance().setup();
         //EdgeDriverManager.getInstance().setup();
         //PhantomJsDriverManager.getInstance().setup();
-        if(!run_setup)
+        if(!run_setup) {
             //PhantomJsDriverManager.getInstance().setup();
-            FirefoxDriverManager.getInstance().setup();
+            ChromeDriverManager.getInstance().setup();
+            //FirefoxDriverManager.getInstance().setup();
+            run_setup = true;
+        }
 
-        driver = new FirefoxDriver();
+       // driver = new FirefoxDriver();
+        //driver = new PhantomJSDriver();
+        driver = new ChromeDriver();
         return driver;
     }
 
@@ -127,7 +136,27 @@ public class scraper {
 
     public static void main(String[] argv){
 
+        setup_sql();
 
+        semesterData testdata = semesterData.loadSemester(2161);
+        //System.out.println(q.toString());
+        //semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
+        //int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
+
+        //testdata.sections.put(42,new sectionData(42,"tut",01,"lATER","Somewhere-else",1337,"some bloke","some better bloke.","123","AWE","NOT OPEN FOR ANYONE"));
+
+        if(testdata != null){
+
+
+        System.out.println(testdata.toString());
+
+        put_semester(testdata);
+
+        System.exit(0);
+        }
+
+        System.out.println("Why is life so hard. Let it run till it saves something, then kill it and try again.");
+        
         driver = setup_driver();
 
         //GET SEMESTERS! YAY!
@@ -139,19 +168,44 @@ public class scraper {
         //Get da https://en.wikipedia.org/wiki/File:DataTNG.jpg
         for(Integer semester : Semesters.keySet()){
             semesterData data = new semesterData(semester);
-            //data.ParseSubjects(driver);
             sdata.put(semester,data);
         }
 
-        sdata.get(2161).ParseSubjects(driver);
+        //Put this in multiple threads..?
+        //HashSet<Thread> threads = new HashSet<Thread>();
+        for(Integer semesterID : sdata.keySet()) {
+            semesterData s = sdata.get(semesterID);
+            /*
+            Thread t = new Thread(s);
+            threads.add(t);
+            t.start();
+            */
+            /*
+            semesterData r = semesterData.loadSemester(semesterID);
+            if(r != null){
+                s=r;
+            }else {
+            */
+                s.run(driver);
 
-        //SearchFor(driver,sdata.get(2161),"CPSC",42);
+            //}
+            //put_semester(s);
+            //System.exit(0);
+        }
 
-        //sdata.get(2161).getDataIterative(driver);
 
+        /*
+        for(Thread t : threads){
+            try{t.join();}catch(Exception rawr){}
+        }
+         // */
+
+
+        /*
         SearchFor(driver,sdata.get(2161),"CPSC",0,"G");
         wait(driver);
-        semesterData.parseSearch(driver,sdata.get(2161),"CPSC");
+        semesterData.parseSearch(driver,sdata.get(PhantomJSDriver(); 2161),"CPSC");
+        */
 
         /*
         try {
@@ -160,8 +214,16 @@ public class scraper {
             e.printStackTrace();
         }
         // */
-        driver.close();
-        driver.quit();
+
+
+
+        try {
+            driver.close();
+            driver.quit();
+        }catch(Exception e42){
+            //It's shutting down, w.e
+        }
+        System.out.println("Goodbye.");
 
     }
 
@@ -287,6 +349,59 @@ public class scraper {
             }
         }
 
+    }
+
+    //SQL BITS:
+
+    static Connection sqlCon;
+    static Statement sqlState;
+    static ResultSet sqlResults;
+
+    static String sqlUrl = "jdbc:postgresql://localhost/ddn_db";
+    static String sqlUser = "postgres";
+    static String sqlPassword = "carrots";
+    static int sqlPort = 5432;
+
+    public static void setup_sql(){
+        try {
+        sqlCon = DriverManager.getConnection(sqlUrl, sqlUser, sqlPassword);
+        sqlState = sqlCon.createStatement();
+        sqlResults = sqlState.executeQuery("SELECT VERSION()");
+
+            if (sqlResults.next()) {
+                System.out.println(sqlResults.getString(1));
+            }
+        }catch(Exception e10){
+            e10.printStackTrace();
+            System.out.println("SQL FAILED, ABORTING!");
+            System.exit(1);
+        }
+    }
+    public static void put_semester(semesterData semester){
+
+        try {
+            sqlResults = sqlState.executeQuery("Select id FROM course_section WHERE id = " + semester.semester_id);
+            sqlResults.next();
+            System.out.println(sqlResults.getObject(1));
+            sqlResults.next();
+            System.out.println(sqlResults.getObject(1));
+        }catch(Exception e11){
+            e11.printStackTrace();
+        }
+
+        //Update Course-Sections
+
+        //Update Semesters
+
+        //Update Teaching Assistants... (sigh)
+
+        //Update Instructors
+
+        //Update Course.
+
+        //Update Departments.
+
+        //
     }
 
 }
