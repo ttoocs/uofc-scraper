@@ -375,33 +375,81 @@ public class scraper {
         }
 
         //
-        HashSet<String> Facultys = new HashSet<String>();
+        //HashSet<String> Facultys = new HashSet<String>();
         HashSet<String> Departments = new HashSet<String>();
-        HashMap<String,String> Fac_to_Dept = new HashMap<String,String>();
+        //Faculty_contains : Iterate departments, put firs char of departments.
 
+        HashMap<String,String[]> Courses = new HashMap<String,String[]>();
+        //Num, Dept.
 
+        HashSet<String> Teachers = new HashSet<String>();
 
         //Generate data for SQL.
-        for(int sectID : semester.sections.keySet()){
+        for(int sectID : semester.sections.keySet()) {
             sectionData sect = semester.sections.get(sectID);
+            String temp = sect.deptName.toUpperCase();
 
+            Departments.add(temp); //Dept
+
+            //Put in an array for a quick-fix.
+            Courses.put(sect.prefixNum+sect.deptName, new String[]{sect.prefixNum,sect.deptName});
+
+            Teachers.add(sect.InstructorName);
         }
+
+        for(String dept : Departments) {
+            try {
                 //Faculty (C)
                 //INSERT INTO faculty VALUES(%L) ON CONFLICT DO NOTHING, faculty
+                PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO faculty VALUES(?) ON CONFLICT DO NOTHING");
+                qs.setString(1, dept.substring(0, 1));
+                qs.execute();
 
                 //Update Departments. (CPSC, NULL)
                 //INSERT INTO department VALUES(%L,%L) ON CONFLICT DO NOTHING,  dept, dept)
+                qs = sqlCon.prepareStatement("INSERT INTO department VALUES(?,?) ON CONFLICT DO NOTHING");
+                qs.setString(1, dept);
+                qs.setString(2, semester.subjects.get(dept)); //FULL NAME
+                qs.execute();
 
                 //Link Faculty to Dept (C,CPSC)
                 //"INSERT INTO faculty_contains VALUES(%L,%L) ON CONFLICT DO NOTHING", faculty, dept);
+                qs = sqlCon.prepareStatement("INSERT INTO faculty_contains VALUES(?,?) ON CONFLICT DO NOTHING");
+                qs.setString(1, dept.substring(0, 1));
+                qs.setString(2, dept);
+                qs.execute();
 
+            }catch(Exception sql0){sql0.printStackTrace();}
+        }
+
+        for(String key: Courses.keySet()) {
+            String[] vals = Courses.get(key);
+            try {
                 //Update Course.
                 //(NULL NULL, 471, CPSC)
                 //("INSERT INTO course VALUES(%L,%L,%L,%L) ON CONFLICT DO NOTHING", name, name, num, dept);
 
+                PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO course VALUES(null,null,?,?) ON CONFLICT DO NOTHING");
+                qs.setString(1,vals[0]);
+                qs.setString(2,vals[1]);
+                qs.execute();
+
+            }catch(Exception sql1){sql1.printStackTrace();}
+        }
+
+        for(String teach : Teachers) {
+            try {
+
                 //Update Instructors (BLOKE)
                 //"INSERT INTO instructor VALUES(%L) ON CONFLICT DO NOTHING", name
+                PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO instructor VALUES(?) ON CONFLICT DO NOTHING");
+                qs.setString(teach);
+                qs.execute();
 
+            }catch(Exception sql2){
+                sql2.printStackTrace();
+            }
+        }
         for(int sectID : semester.sections.keySet()) {
             sectionData sect = semester.sections.get(sectID);
             try {
