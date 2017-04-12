@@ -143,16 +143,23 @@ public class scraper {
         if(SQLFUN) {
             setup_sql();
 
-            //semesterData testdata = semesterData.loadSemester(2161);
+            semesterData testdata = semesterData.loadAsStr(2161);
+
+            if(testdata == null){
+                System.out.println("why.");
+            }
             //System.out.println(q.toString());
 
-            semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
+
+            //semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
+            //testdata.sections.put(42, new sectionData(42, "tut", "01", "lATER", "Somewhere-else","AROOM", 1337, "some bloke", "some better bloke.", "123", "AWE", "NOT OPEN FOR ANYONE"));
+
+
+
             Semesters = new HashMap<Integer,String>();
-            Semesters.put(1337,"LEET");
+            Semesters.put(testdata.semester_id, "leet");
+            //Semesters.put(1337,"LEET");
 
-            //int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
-
-            testdata.sections.put(42, new sectionData(42, "tut", "01", "lATER", "Somewhere-else","AROOM", 1337, "some bloke", "some better bloke.", "123", "AWE", "NOT OPEN FOR ANYONE"));
 
             if (testdata != null) {
 
@@ -361,14 +368,15 @@ public class scraper {
             System.exit(1);
         }
     }
-    public static void put_semester(semesterData semester){
-
+    public static void nuke_db(){
         //Nuke the database!
         try {
             sqlState.execute(new Scanner(new File("database.sql")).useDelimiter("\\Z").next()); //Use the database.sql file to nuke it.
         }catch(Exception e11){
             e11.printStackTrace();
         }
+    }
+    public static void put_semester(semesterData semester){
 
         try {
             sqlResults = sqlState.executeQuery("Select id FROM course_section WHERE id = " + semester.semester_id);
