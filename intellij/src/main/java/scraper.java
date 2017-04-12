@@ -124,14 +124,14 @@ public class scraper {
         //PhantomJsDriverManager.getInstance().setup();
         if(!run_setup) {
             //PhantomJsDriverManager.getInstance().setup();
-            //ChromeDriverManager.getInstance().setup();
-            FirefoxDriverManager.getInstance().setup();
+            ChromeDriverManager.getInstance().setup();
+            //FirefoxDriverManager.getInstance().setup();
             run_setup = true;
         }
 
-        driver = new FirefoxDriver();
+        //driver = new FirefoxDriver();
         //driver = new PhantomJSDriver();
-        //driver = new ChromeDriver();
+        driver = new ChromeDriver();
         return driver;
     }
 
@@ -195,7 +195,7 @@ public class scraper {
                     threads.add(t);
                     t.start();
                 }else {
-                    s.run(driver);
+                    try{s.run(driver);}catch(Exception ohgod){System.out.println("BUG:"); ohgod.printStackTrace();}
                 }
             }
             //sdata.put(semester,s);

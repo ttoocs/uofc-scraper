@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 
+import static java.lang.Integer.min;
+
 /**
  * Created by scott.saunders on 4/8/17.
  */
@@ -130,7 +132,7 @@ public class semesterData extends Thread implements Serializable{
                     continue;
             }catch(NoSuchElementException e){
                 //Oh good, there was no error, this is something we actually want!
-                System.out.println("Found course: "+scraper.Semesters.get(semester.semester_id)+" "+subject+" "+i);
+                //System.out.println("Found course: "+scraper.Semesters.get(semester.semester_id)+" "+subject+" "+i);
             }
             parseSearch(drv,semester,subject);
         }
@@ -268,7 +270,7 @@ public class semesterData extends Thread implements Serializable{
             if(! semester.sections.containsKey(cid)) {
                 sectionData tmp = new sectionData(cid, type_str, type_num, parseTime(time), room,location, semester.semester_id, nullstr, instructor, prefixnums[i], subNames[i],status);
                 semester.sections.put(cid,tmp);
-                System.out.println(tmp);
+                //System.out.println(tmp);
             }
 
 
@@ -290,8 +292,7 @@ public class semesterData extends Thread implements Serializable{
             String startTime = timein.split(" ")[1];
             String endTime = timein.split(" ")[3];
 
-            endTime = endTime.substring(0, endTime.lastIndexOf(':') + 5); //Remove any little extra bits //TODO: This is how I hide the above todo.
-
+            endTime = endTime.substring(0, min(endTime.length(), endTime.lastIndexOf(':') + 5)); //Remove any little extra bits //TODO: This is how I hide the above todo.
 
             if (timein.toLowerCase().contains("mo")) {
                 ret += "mon," + startTime + "," + endTime;
@@ -342,8 +343,9 @@ public class semesterData extends Thread implements Serializable{
         saveAsStr(sem); //Call a save to STR-version, for future-data-reusing(?)
         if(true)
             return; //Skips the object save.
+
         try {
-            System.out.println("Saving semester: "+sem.semester_id+".obj");
+            //System.out.println("Saving semester: "+sem.semester_id+".obj");
 
             File f = new File(sem.semester_id+".obj");
             if(f.exists()) {
@@ -364,14 +366,14 @@ public class semesterData extends Thread implements Serializable{
     }
     public static semesterData loadSemester(int lid){
         if(true)
-        return semesterData.loadAsStr(lid); //Skips the object load
+            return semesterData.loadAsStr(lid); //Skips the object load
 
         semesterData sem = null;
         try {
             File f = new File(lid+".obj");
             ObjectInputStream in = new ObjectInputStream(new FileInputStream(f));
             sem = (semesterData) in.readObject();
-            System.out.println("Loading semester: "+lid+".obj");
+            //System.out.println("Loading semester: "+lid+".obj");
         }catch(Exception e4){
             //e4.printStackTrace();
         }
