@@ -188,7 +188,15 @@ public class semesterData extends Thread implements Serializable{
 
         scraper.wait(drv);  //Wait for anything.
 
-        WebElement e = drv.findElement(By.id("win0divSSR_CLSRSLT_WRK_GROUPBOX1")).findElement(By.className("SSSGROUPBOX"));
+        try {
+            WebElement e = drv.findElement(By.id("win0divSSR_CLSRSLT_WRK_GROUPBOX1")).findElement(By.className("SSSGROUPBOX"));
+            //In overnight run, the above failed at one point.
+        }catch(Exception e){
+            System.out.println("BUG: semester:"+semester.semester_id+", subject: "+subject);
+            e.printStackTrace();
+            return; //Stop trying for this page.
+        }
+
         int numrows = Integer.parseInt(e.getText().split(" ")[0]);
         //System.out.println("Found "+ numrows+ " rows.");
 
@@ -406,6 +414,7 @@ public class semesterData extends Thread implements Serializable{
             }
             bw.flush();
             bw.close();
+            
             //Old method: (Gets too long and fails.)
             //new DataOutputStream(new FileOutputStream(f)).writeUTF(sem.toString());
         }catch(Exception e5){e5.printStackTrace();}
@@ -417,6 +426,9 @@ public class semesterData extends Thread implements Serializable{
         try{
 
             File f = (new File(id+".str"));
+            if(!f.exists())
+                return null;
+
             BufferedReader br = new BufferedReader(new FileReader(f));
             String line;
             while(( line = br.readLine()) != null){
@@ -425,7 +437,7 @@ public class semesterData extends Thread implements Serializable{
 
                 sectionData a = null;
 
-                if(elems.length == 12) { //WRONG SIZE
+                if(elems.length == 12) {
                     //System.out.println("Old data, parsing");
                     a = new sectionData(Integer.parseInt(elems[1]), elems[2], elems[3], elems[4], "OldDataErrorFixed", elems[5], Integer.parseInt(elems[6]), elems[7], elems[8], elems[9], elems[10], elems[11]);
                 }
@@ -436,10 +448,7 @@ public class semesterData extends Thread implements Serializable{
                 if(a!=null) {
                     ret.sections.put(a.id, a);
                 }
-                //DataInputStream in = new DataInputStream(new FileInputStream));
-                //System.out.println("STUB: NOT YET IMPLMENTED.");
-                //Scanner s = new Scanner(in.readUTF());
-                // for(String line : in.readUTF()){
+
 
             }
         }catch(Exception e6){
