@@ -188,12 +188,13 @@ public class semesterData extends Thread implements Serializable{
 
         scraper.wait(drv);  //Wait for anything.
 
+        WebElement e;
         try {
-            WebElement e = drv.findElement(By.id("win0divSSR_CLSRSLT_WRK_GROUPBOX1")).findElement(By.className("SSSGROUPBOX"));
+            e = drv.findElement(By.id("win0divSSR_CLSRSLT_WRK_GROUPBOX1")).findElement(By.className("SSSGROUPBOX"));
             //In overnight run, the above failed at one point.
-        }catch(Exception e){
+        }catch(Exception err){
             System.out.println("BUG: semester:"+semester.semester_id+", subject: "+subject);
-            e.printStackTrace();
+            err.printStackTrace();
             return; //Stop trying for this page.
         }
 
@@ -414,7 +415,7 @@ public class semesterData extends Thread implements Serializable{
             }
             bw.flush();
             bw.close();
-            
+
             //Old method: (Gets too long and fails.)
             //new DataOutputStream(new FileOutputStream(f)).writeUTF(sem.toString());
         }catch(Exception e5){e5.printStackTrace();}

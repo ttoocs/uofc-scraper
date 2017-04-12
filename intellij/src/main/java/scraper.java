@@ -11,10 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 //import org.
 
 //import io.github.bonigarcia.wdm
@@ -137,39 +134,54 @@ public class scraper {
 
     static HashMap<Integer,String> Semesters;
 
-    public static void main(String[] argv){
+    public static void main(String args[]){
+
+        //TODO: Parse arguments
+        //TODO: Handle different run-cases without recompiling/etc.
+
+        boolean noSQL = false;
+        boolean noScrape = false;
+        ArrayList<Integer> scrapeSemesters = null;
+
+        //while(int i=0; i< args ; i++)
+        int i=0;
+        while(i < args.length){
+            String arg = args[i];
+            switch (arg.toLowerCase()) {
+                case "--nosql":
+                    noSQL = true;
+                    break;
+                case "--noscrape":
+                    noScrape = true;
+                    break;
+                case "--sem":
+                    if(scrapeSemesters == null)
+                        scrapeSemesters = new ArrayList<Integer>();
+                    arg = args[i++];
+                    for(int j =0; j < arg.split(",").length; j++){
+                        scrapeSemesters.add(Integer.parseInt(arg.split(",")[j]));
+                    }
+                    break;
+            }
+
+        }
+
 
         boolean SQLFUN = false; //for testing SQL or quick-loading it.
         if(SQLFUN) {
             setup_sql();
-
             semesterData testdata = semesterData.loadAsStr(2161);
-
-            if(testdata == null){
-                System.out.println("why.");
-            }
-            //System.out.println(q.toString());
-
-
             //semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
             //testdata.sections.put(42, new sectionData(42, "tut", "01", "lATER", "Somewhere-else","AROOM", 1337, "some bloke", "some better bloke.", "123", "AWE", "NOT OPEN FOR ANYONE"));
-
-
             Semesters = new HashMap<Integer,String>();
             Semesters.put(testdata.semester_id, "leet");
             //Semesters.put(1337,"LEET");
-
-
             //if (testdata != null) {
-
                 //System.out.println(testdata.toString());
-
                 put_semester(testdata);
-
-                System.exit(0);
-           // }
             System.exit(0);
         }
+
 
         driver = setup_driver();
 
@@ -344,17 +356,21 @@ public class scraper {
     //SQL BITS:
 
     static Connection sqlCon;
-    static Statement sqlState;
-    static ResultSet sqlResults;
 
     static String sqlUrl = "jdbc:postgresql://localhost/ddn_db";
     static String sqlUser = "postgres";
     static String sqlPassword = "carrots";
     static int sqlPort = 5432;
 
+    static boolean sql_setup = false;
     public static void setup_sql(){
+        if(sql_setup)
+            return;
+        sql_setup = true;
         try {
         sqlCon = DriverManager.getConnection(sqlUrl, sqlUser, sqlPassword);
+        Statement sqlState;
+        ResultSet sqlResults;
         sqlState = sqlCon.createStatement();
         sqlResults = sqlState.executeQuery("SELECT VERSION()");
 
@@ -370,30 +386,21 @@ public class scraper {
     }
     public static void nuke_db(){
         //Nuke the database!
+        scraper.setup_sql();
         try {
-            sqlState.execute(new Scanner(new File("database.sql")).useDelimiter("\\Z").next()); //Use the database.sql file to nuke it.
+            sqlCon.createStatement().execute(new Scanner(new File("database.sql")).useDelimiter("\\Z").next()); //Use the database.sql file to nuke it.
         }catch(Exception e11){
             e11.printStackTrace();
         }
     }
     public static void put_semester(semesterData semester){
+        scraper.setup_sql(); //Try to setup SQL.
 
-        try {
-            //sqlResults = sqlState.executeQuery("Select id FROM course_section WHERE id = " + semester.semester_id);
-            //Somehow check if it has the data and if not add it?
-
-        }catch(Exception e11){
-            e11.printStackTrace();
-        }
-
-        //
-        //HashSet<String> Facultys = new HashSet<String>();
         HashSet<String> Departments = new HashSet<String>();
-        //Faculty_contains : Iterate departments, put firs char of departments.
-
+        //Faculties made from first char of Departments.
+        //Courses made from prefixNum and subject of section.
         HashMap<String,String[]> Courses = new HashMap<String,String[]>();
-        //Num, Dept.
-
+        //ID (num+dept), {Num, Dept.}
         HashSet<String> Teachers = new HashSet<String>();
 
         //Generate data for SQL.
@@ -401,9 +408,8 @@ public class scraper {
             sectionData sect = semester.sections.get(sectID);
             String temp = sect.deptName.toUpperCase();
 
-            Departments.add(temp); //Dept
+            Departments.add(temp);
 
-            //Put in an array for a quick-fix.
             Courses.put(sect.prefixNum+sect.deptName, new String[]{sect.prefixNum,sect.deptName});
 
             Teachers.add(sect.InstructorName);
@@ -503,9 +509,6 @@ public class scraper {
             }
         }
                 //Update Teaching Assistants... (sigh)
-
-
-
 
     }
 
