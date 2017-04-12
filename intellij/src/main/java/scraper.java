@@ -113,22 +113,38 @@ public class scraper {
     }
 
     static boolean run_setup = false;
+
     public static WebDriver setup_driver(){
+        return setup_driver(null); //Give it the default.
+    }
+
+    public static WebDriver setup_driver(String useDriver){
         //ChromeDriverManager.getInstance().setup();
         //InternetExplorerDriverManager.getInstance().setup();
         //OperaDriverManager.getInstance().setup();
         //EdgeDriverManager.getInstance().setup();
         //PhantomJsDriverManager.getInstance().setup();
+
+        if(useDriver == null)
+            useDriver = "f";    //Default.
+
         if(!run_setup) {
-            //PhantomJsDriverManager.getInstance().setup();
-            ChromeDriverManager.getInstance().setup();
-            //FirefoxDriverManager.getInstance().setup();
+            if(useDriver.contains("p"))
+                PhantomJsDriverManager.getInstance().setup();
+            if(useDriver.contains("c"))
+                ChromeDriverManager.getInstance().setup();
+            if(useDriver.contains("f"))
+                FirefoxDriverManager.getInstance().setup();
             run_setup = true;
         }
 
-        //driver = new FirefoxDriver();
-        //driver = new PhantomJSDriver();
-        driver = new ChromeDriver();
+        if(useDriver.contains("p"))
+            driver = new PhantomJSDriver();
+        if(useDriver.contains("c"))
+            driver = new ChromeDriver();
+        if(useDriver.contains("f"))
+            driver = new FirefoxDriver();
+
         return driver;
     }
 
@@ -137,9 +153,10 @@ public class scraper {
     public static void main(String args[]){
 
         boolean noSQL = false;
-        boolean noScrape = true;
+        boolean noScrape = false;
         boolean MultiThread =false;
         ArrayList<Integer> scrapeSemesters = null;
+        String useDriver = null;
 
         //while(int i=0; i< args ; i++)
         int piter=0;
@@ -163,6 +180,12 @@ public class scraper {
                 case "--multithread":case"-mt":case"-m":
                     MultiThread = true;
                     break;
+                case "--firefox":case"-ff":case"-f":
+                    useDriver = "f";
+                case "--chromium":case"--chrome":case"-c":
+                    useDriver = "c";
+                case "--phantomjs":case"--phantom":case"-p":
+                    useDriver = "p";
             }
 
         }
@@ -201,12 +224,12 @@ public class scraper {
                     putSQL(load);
                 }
             }
-
+            System.exit(0);
         }
 
-        boolean SQL_INNER = false;
+        boolean SQL_INNER = true;
 
-        driver = setup_driver();
+        driver = setup_driver(useDriver);
 
         //GET SEMESTERS! YAY!
         Semesters = GetSemesters();
@@ -216,8 +239,17 @@ public class scraper {
 
         HashSet<Thread> threads = new HashSet<Thread>();
 
+
+        //To handle parsing, we put all semesters in this.
+        if(scrapeSemesters == null){
+            scrapeSemesters = new ArrayList<Integer>();
+            for(Integer semester : Semesters.keySet()){
+                scrapeSemesters.add(semester);
+            }
+        }
+
         //Get da https://en.wikipedia.org/wiki/File:DataTNG.jpg
-        for(Integer semester : Semesters.keySet()){
+        for(Integer semester : scrapeSemesters){
             semesterData s = new semesterData(semester);
             semesterData r = semesterData.loadSemester(semester);
 
@@ -236,8 +268,9 @@ public class scraper {
                 try {
                     putSQL(s);
                 }catch(Exception guessnot){guessnot.printStackTrace();}
+            }else {
+                sdata.put(semester, s);
             }
-            sdata.put(semester,s);
         }
 
         if(MultiThread){
@@ -482,9 +515,11 @@ public class scraper {
                 //(NULL NULL, 471, CPSC)
                 //("INSERT INTO course VALUES(%L,%L,%L,%L) ON CONFLICT DO NOTHING", name, name, num, dept);
 
-                PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO course VALUES(null,null,?,?) ON CONFLICT DO NOTHING");
-                qs.setString(1,vals[0]);
+                PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO course VALUES(?,?,?,?) ON CONFLICT DO NOTHING");
+                qs.setString(1,vals[1]); //Placeholders.
                 qs.setString(2,vals[1]);
+                qs.setString(3,vals[0]);
+                qs.setString(4,vals[1]);
                 qs.execute();
 
             }catch(Exception sql1){sql1.printStackTrace();}

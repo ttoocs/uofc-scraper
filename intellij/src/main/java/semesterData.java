@@ -433,8 +433,8 @@ public class semesterData extends Thread implements Serializable{
 
                 sectionData a = null;
 
-                if (line.equals("complete")){
-                    a.complete = true;
+                if (line != null && line.equals("complete")){
+                    ret.complete = true;
                     continue;
                 }
 
