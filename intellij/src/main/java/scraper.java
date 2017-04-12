@@ -495,7 +495,8 @@ public class scraper {
                 //INSERT INTO department VALUES(%L,%L) ON CONFLICT DO NOTHING,  dept, dept)
                 qs = sqlCon.prepareStatement("INSERT INTO department VALUES(?,?) ON CONFLICT DO NOTHING");
                 qs.setString(1, dept);
-                qs.setString(2, semester.subjects.get(dept)); //FULL NAME
+                //qs.setString(2, semester.subjects.get(dept)); //FULL NAME //TODO: FIX THIS.
+                qs.setString(2, dept);
                 qs.execute();
 
                 //Link Faculty to Dept (C,CPSC)
