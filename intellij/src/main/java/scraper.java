@@ -136,17 +136,15 @@ public class scraper {
 
     public static void main(String args[]){
 
-        //TODO: Parse arguments
-        //TODO: Handle different run-cases without recompiling/etc.
-
         boolean noSQL = false;
-        boolean noScrape = false;
+        boolean noScrape = true;
+        boolean MultiThread =false;
         ArrayList<Integer> scrapeSemesters = null;
 
         //while(int i=0; i< args ; i++)
-        int i=0;
-        while(i < args.length){
-            String arg = args[i];
+        int piter=0;
+        while(piter < args.length){
+            String arg = args[piter++];
             switch (arg.toLowerCase()) {
                 case "--nosql":
                     noSQL = true;
@@ -154,20 +152,23 @@ public class scraper {
                 case "--noscrape":
                     noScrape = true;
                     break;
-                case "--sem":
+                case "--sem":   case"-s":
                     if(scrapeSemesters == null)
                         scrapeSemesters = new ArrayList<Integer>();
-                    arg = args[i++];
+                    arg = args[piter++];
                     for(int j =0; j < arg.split(",").length; j++){
                         scrapeSemesters.add(Integer.parseInt(arg.split(",")[j]));
                     }
+                    break;
+                case "--multithread":case"-mt":case"-m":
+                    MultiThread = true;
                     break;
             }
 
         }
 
 
-        boolean SQLFUN = false; //for testing SQL or quick-loading it.
+        boolean SQLFUN = false; //Manual SQL tests.
         if(SQLFUN) {
             setup_sql();
             semesterData testdata = semesterData.loadAsStr(2161);
@@ -178,10 +179,32 @@ public class scraper {
             //Semesters.put(1337,"LEET");
             //if (testdata != null) {
                 //System.out.println(testdata.toString());
-                put_semester(testdata);
+            putSQL(testdata);
             System.exit(0);
         }
 
+        if(noScrape){
+            if(scrapeSemesters == null){
+                System.out.println("No scraping, and no semesters to put. I'm done then, yay!");
+                System.exit(0);
+            }
+            if(noSQL){
+                System.out.println("No scraping, and no sqling. I guess i'll go die then.");
+                System.exit(0);
+            }
+
+            Semesters = new HashMap<Integer,String>();
+            for(int i : scrapeSemesters){
+                semesterData load = semesterData.loadAsStr(i);
+                if(load != null){
+                    Semesters.put(i,i+"Unknown, I don't save this. (yet)"); //TODO.
+                    putSQL(load);
+                }
+            }
+
+        }
+
+        boolean SQL_INNER = false;
 
         driver = setup_driver();
 
@@ -191,7 +214,6 @@ public class scraper {
         //Get ready for data!
         HashMap<Integer,semesterData> sdata = new HashMap<Integer,semesterData>();
 
-        boolean MultiThread =false;
         HashSet<Thread> threads = new HashSet<Thread>();
 
         //Get da https://en.wikipedia.org/wiki/File:DataTNG.jpg
@@ -210,12 +232,23 @@ public class scraper {
                     try{s.run(driver);}catch(Exception ohgod){System.out.println("BUG:"); ohgod.printStackTrace();}
                 }
             }
-            //sdata.put(semester,s);
+            if(!noSQL && SQL_INNER ){
+                try {
+                    putSQL(s);
+                }catch(Exception guessnot){guessnot.printStackTrace();}
+            }
+            sdata.put(semester,s);
         }
 
         if(MultiThread){
             for(Thread t : threads){
                 try{t.join();}catch(Exception e){}
+            }
+        }
+
+        if(!noSQL && !SQL_INNER){ //Might play nicer with multithreading.
+            for(int semID :sdata.keySet()){
+                putSQL(sdata.get(semID));
             }
         }
 
@@ -318,21 +351,12 @@ public class scraper {
         try{
             drv.findElement(By.id("#ICSave")).click();
         }catch(Exception idc){
-            //NOTHING
+            //I SAID I DON CARE.
         }
     }
 
     public static void wait(WebDriver drv){
 
-        //Old:
-        /*
-        try {
-            Thread.sleep(scraper.delay);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }   //*/
-
-        //New-ver
         while(true) {
 
             hitOK(drv); //OKAY IS OKAY HIT OKAY OKAY?
@@ -393,7 +417,7 @@ public class scraper {
             e11.printStackTrace();
         }
     }
-    public static void put_semester(semesterData semester){
+    public static void putSQL(semesterData semester){
         scraper.setup_sql(); //Try to setup SQL.
 
         HashSet<String> Departments = new HashSet<String>();

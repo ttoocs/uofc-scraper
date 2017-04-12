@@ -115,7 +115,7 @@ public class semesterData extends Thread implements Serializable{
                 }
 
                 parseSearch(drv,semester,subject); //Parse it
-                semesterData.saveSemester(semester);    //Temp way to generate data!
+                semesterData.saveSemester(semester);    //Partial saves
             }
 //            semester.parsedSubjects.add(subject);   //Note it as parsed.  //TODO
 
@@ -156,7 +156,7 @@ public class semesterData extends Thread implements Serializable{
             //System.out.println("Found course: "+scraper.Semesters.get(semester.semester_id)+" "+subject);
         }
 
-        //TODO: Parse the data.
+        //BIG COMMENT OF IDS:
 
         //Big table ID: ACE_DERIVED_CLSRCH_GROUP6
         //Row1 of first element:    trSSR_CLSRCH_MTG1$0_row1
@@ -344,7 +344,7 @@ public class semesterData extends Thread implements Serializable{
                 ret += "sun," + startTime + "," + endTime;
             }
         //}
-        //System.out.println
+
         return ret;
     }
 
@@ -401,18 +401,12 @@ public class semesterData extends Thread implements Serializable{
         try {
             File f = new File(sem.semester_id + ".str");
 
-            /*
-            if(f.exists())
-                f.delete();
-
-            f.createNewFile();
-            */
-
             BufferedWriter bw = new BufferedWriter(new FileWriter(f));
             for(int i : sem.sections.keySet()) {
                 bw.write(sem.sections.get(i).toString()+"\n");
-
             }
+            if(sem.complete)
+                bw.write("complete\n");
             bw.flush();
             bw.close();
 
@@ -433,10 +427,16 @@ public class semesterData extends Thread implements Serializable{
             BufferedReader br = new BufferedReader(new FileReader(f));
             String line;
             while(( line = br.readLine()) != null){
+
                 String[] elems = line.split("`");
                 //System.out.println("Loading line: "+line);
 
                 sectionData a = null;
+
+                if (line.equals("complete")){
+                    a.complete = true;
+                    continue;
+                }
 
                 if(elems.length == 12) {
                     //System.out.println("Old data, parsing");
