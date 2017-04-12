@@ -139,7 +139,7 @@ public class scraper {
 
     public static void main(String[] argv){
 
-        boolean SQLFUN = false;
+        boolean SQLFUN = false; //for testing SQL or quick-loading it.
         if(SQLFUN) {
             setup_sql();
 
@@ -155,20 +155,19 @@ public class scraper {
             //testdata.sections.put(42, new sectionData(42, "tut", "01", "lATER", "Somewhere-else","AROOM", 1337, "some bloke", "some better bloke.", "123", "AWE", "NOT OPEN FOR ANYONE"));
 
 
-
             Semesters = new HashMap<Integer,String>();
             Semesters.put(testdata.semester_id, "leet");
             //Semesters.put(1337,"LEET");
 
 
-            if (testdata != null) {
+            //if (testdata != null) {
 
-                System.out.println(testdata.toString());
+                //System.out.println(testdata.toString());
 
                 put_semester(testdata);
 
                 System.exit(0);
-            }
+           // }
             System.exit(0);
         }
 
@@ -199,7 +198,7 @@ public class scraper {
                     s.run(driver);
                 }
             }
-            sdata.put(semester,s);
+            //sdata.put(semester,s);
         }
 
         if(MultiThread){
@@ -367,6 +366,7 @@ public class scraper {
             System.out.println("SQL FAILED, ABORTING!");
             System.exit(1);
         }
+        nuke_db();
     }
     public static void nuke_db(){
         //Nuke the database!
@@ -379,7 +379,7 @@ public class scraper {
     public static void put_semester(semesterData semester){
 
         try {
-            sqlResults = sqlState.executeQuery("Select id FROM course_section WHERE id = " + semester.semester_id);
+            //sqlResults = sqlState.executeQuery("Select id FROM course_section WHERE id = " + semester.semester_id);
             //Somehow check if it has the data and if not add it?
 
         }catch(Exception e11){
@@ -484,7 +484,11 @@ public class scraper {
                 PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO course_section VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING");
                 qs.setString(1, sect.type.toUpperCase());
                 qs.setInt(2, sect.semesterID);
-                qs.setInt(3, Integer.parseInt(sect.typeNum));
+                try{qs.setInt(3, Integer.parseInt(sect.typeNum));}
+                catch(Exception e3245){
+                    //System.out.println(sect.id +" has sect type: "+sect.typeNum);
+                    qs.setInt(3, -1);
+                }
                 qs.setString(4, sect.time);
                 qs.setString(5, sect.room);
                 qs.setInt(6, sect.id);

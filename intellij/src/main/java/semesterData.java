@@ -419,13 +419,21 @@ public class semesterData extends Thread implements Serializable{
             String line;
             while(( line = br.readLine()) != null){
                 String[] elems = line.split("`");
-                System.out.println("Loading line: "+line);
-                if(elems.length != 12) { //WRONG SIZE
-                    System.out.println("Wrong size: "+elems.length+". Expected 12");
-                    continue;
+                //System.out.println("Loading line: "+line);
+
+                sectionData a = null;
+
+                if(elems.length == 12) { //WRONG SIZE
+                    //System.out.println("Old data, parsing");
+                    a = new sectionData(Integer.parseInt(elems[1]), elems[2], elems[3], elems[4], "OldDataErrorFixed", elems[5], Integer.parseInt(elems[6]), elems[7], elems[8], elems[9], elems[10], elems[11]);
                 }
-                sectionData a =  new sectionData(Integer.parseInt(elems[1]), elems[2], elems[3], elems[4], elems[5],elems[6], Integer.parseInt(elems[7]), elems[8], elems[9], elems[10], elems[11], elems[12]);
-                ret.sections.put(a.id,a);
+                if(elems.length == 13) {
+                    a = new sectionData(Integer.parseInt(elems[1]), elems[2], elems[3], elems[4], elems[5], elems[6], Integer.parseInt(elems[7]), elems[8], elems[9], elems[10], elems[11], elems[12]);
+                }
+
+                if(a!=null) {
+                    ret.sections.put(a.id, a);
+                }
                 //DataInputStream in = new DataInputStream(new FileInputStream));
                 //System.out.println("STUB: NOT YET IMPLMENTED.");
                 //Scanner s = new Scanner(in.readUTF());
