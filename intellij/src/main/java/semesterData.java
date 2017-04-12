@@ -412,11 +412,13 @@ public class semesterData extends Thread implements Serializable{
             BufferedReader br = new BufferedReader(new FileReader(f));
             String line;
             while(( line = br.readLine()) != null){
-                String[] elems = line.split(" ");
-
-                if(elems.length != 12) //WRONG SIZE
-                    return null;
-                sectionData a =  new sectionData(Integer.parseInt(elems[0]), elems[1], elems[2], elems[3], elems[4],elems[5], Integer.parseInt(elems[6]), elems[7], elems[8], elems[9], elems[10], elems[11]);
+                String[] elems = line.split("`");
+                System.out.println("Loading line: "+line);
+                if(elems.length != 12) { //WRONG SIZE
+                    System.out.println("Wrong size: "+elems.length+". Expected 12");
+                    continue;
+                }
+                sectionData a =  new sectionData(Integer.parseInt(elems[1]), elems[2], elems[3], elems[4], elems[5],elems[6], Integer.parseInt(elems[7]), elems[8], elems[9], elems[10], elems[11], elems[12]);
                 ret.sections.put(a.id,a);
                 //DataInputStream in = new DataInputStream(new FileInputStream));
                 //System.out.println("STUB: NOT YET IMPLMENTED.");
