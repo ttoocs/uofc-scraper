@@ -1,16 +1,24 @@
+import org.apache.commons.io.output.WriterOutputStream;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.Select;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Created by scott.saunders on 4/8/17.
  */
 public class semesterData extends Thread implements Serializable{
     int semester_id;
-    boolean complete;
+
+    boolean subjects_parsed=false;
+    HashSet<String> parsedSubjects = new HashSet<String>();
+    boolean complete=false;
+
+
     HashMap<String,String> subjects = new HashMap<String,String>();
     HashMap<Integer,sectionData> sections= new HashMap<Integer,sectionData>();
     HashMap<Integer,classData> classes= new HashMap<Integer,classData>();
@@ -27,6 +35,7 @@ public class semesterData extends Thread implements Serializable{
     public semesterData(int semester_id){
         this.semester_id = semester_id;
         complete = false;
+        subjects_parsed=false;
     }
 
     public void run(){
@@ -36,6 +45,7 @@ public class semesterData extends Thread implements Serializable{
     public void run(WebDriver drv){
 
         this.ParseSubjects(drv);
+        this.subjects_parsed=true;
         this.getData(drv);
         this.complete = true;
         semesterData.saveSemester(this);
@@ -85,6 +95,10 @@ public class semesterData extends Thread implements Serializable{
             drv = scraper.setup_driver();
         }
         for(String subject : semester.subjects.keySet()) {
+
+//            if(semester.parsedSubjects.contains(subject))   //Skip if already parsed TODO
+//                continue;
+
             for (int i = 0; i < 10; i++) { //Does it contain a 0? How about 1...
                 scraper.SearchFor(drv, semester, subject, i, "C");
                 try {
@@ -98,7 +112,10 @@ public class semesterData extends Thread implements Serializable{
                 } catch (NoSuchElementException e) {
                 }
 
+                parseSearch(drv,semester,subject); //Parse it
+                semesterData.saveSemester(semester);    //Temp way to generate data!
             }
+//            semester.parsedSubjects.add(subject);   //Note it as parsed.  //TODO
 
         }
 
@@ -171,7 +188,7 @@ public class semesterData extends Thread implements Serializable{
 
         WebElement e = drv.findElement(By.id("win0divSSR_CLSRSLT_WRK_GROUPBOX1")).findElement(By.className("SSSGROUPBOX"));
         int numrows = Integer.parseInt(e.getText().split(" ")[0]);
-        System.out.println("Found "+ numrows+ " rows.");
+        //System.out.println("Found "+ numrows+ " rows.");
 
         //Get course ID's for each row:
         String[] prefixnums = new String[numrows];
@@ -238,10 +255,10 @@ public class semesterData extends Thread implements Serializable{
             String type_num = null;
 
             if(type.toLowerCase().contains("tut")){
-                type_str="tutorial";
+                type_str="tut";
                 type_num=type.split("-")[0].substring(1).trim();
             }else if(type.toLowerCase().contains("lec")) {
-                type_str="lecture";
+                type_str="lec";
                 type_num=type.split("-")[0].trim();
             }else if(type.toLowerCase().contains("lab")) {
                 type_str="lab";
@@ -259,62 +276,84 @@ public class semesterData extends Thread implements Serializable{
     }
     //<mon/tue/wen/thu/fri/sat/sun>,<start-time>,<end-time>
     public static String parseTime(String timein){
+        String ret = new String();
+        boolean first = true;
+
         if(timein.toLowerCase().contains("tba"))
             return timein;
 
-        String[] days = new String[7];
-        String startTime = timein.split(" ")[1];
-        String endTime = timein.split(" ")[3];
+        int numDiffTimes = timein.split(":").length/2;
 
-        String ret = new String();
-        boolean first = true;
-        if(timein.toLowerCase().contains("mo")){
-            ret += "mon,"+startTime+","+endTime;
-            first=false;
-        }
-        if(timein.toLowerCase().contains("tu")){
-            if(!first)
-                ret += ".";
-            first = false;
-            ret += "tue,"+startTime+","+endTime;
-        }
-        if(timein.toLowerCase().contains("we")){
-            if(!first)
-                ret += ".";
-            first = false;
-            ret += "wen,"+startTime+","+endTime;
-        }
-        if(timein.toLowerCase().contains("th")){
-            if(!first)
-                ret += ".";
-            first = false;
-            ret += "thur,"+startTime+","+endTime;
-        }
-        if(timein.toLowerCase().contains("fr")){
-            if(!first)
-                ret += ".";
-            first = false;
-            ret += "fri,"+startTime+","+endTime;
-        }
-        if(timein.toLowerCase().contains("sa")){
-            if(!first)
-                ret += ".";
-            first = false;
-            ret += "sat,"+startTime+","+endTime;
-        }
-        if(timein.toLowerCase().contains("su")){
-            if(!first)
-                ret += ".";
-            first = false;
-            ret += "sun,"+startTime+","+endTime;
-        }
+
+        //for(int i=0;i< numDiffTimes; i++) {   //TODO: There is a bug, this only grabs the first time. For demo and time reasons, ignoring. (There can be more than one time, apprently.)
+
+            String startTime = timein.split(" ")[1];
+            String endTime = timein.split(" ")[3];
+
+            endTime = endTime.substring(0, endTime.lastIndexOf(':') + 5); //Remove any little extra bits //TODO: This is how I hide the above todo.
+
+
+            if (timein.toLowerCase().contains("mo")) {
+                ret += "mon," + startTime + "," + endTime;
+                first = false;
+            }
+            if (timein.toLowerCase().contains("tu")) {
+                if (!first)
+                    ret += ".";
+                first = false;
+                ret += "tue," + startTime + "," + endTime;
+            }
+            if (timein.toLowerCase().contains("we")) {
+                if (!first)
+                    ret += ".";
+                first = false;
+                ret += "wen," + startTime + "," + endTime;
+            }
+            if (timein.toLowerCase().contains("th")) {
+                if (!first)
+                    ret += ".";
+                first = false;
+                ret += "thr," + startTime + "," + endTime;
+            }
+            if (timein.toLowerCase().contains("fr")) {
+                if (!first)
+                    ret += ".";
+                first = false;
+                ret += "fri," + startTime + "," + endTime;
+            }
+            if (timein.toLowerCase().contains("sa")) {
+                if (!first)
+                    ret += ".";
+                first = false;
+                ret += "sat," + startTime + "," + endTime;
+            }
+            if (timein.toLowerCase().contains("su")) {
+                if (!first)
+                    ret += ".";
+                first = false;
+                ret += "sun," + startTime + "," + endTime;
+            }
+        //}
+        //System.out.println
         return ret;
     }
 
     public static void saveSemester(semesterData sem){
+        saveAsStr(sem); //Call a save to STR-version, for future-data-reusing(?)
+        if(true)
+            return; //Skips the object save.
         try {
             System.out.println("Saving semester: "+sem.semester_id+".obj");
-            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(new File(sem.semester_id+".obj")));
+
+            File f = new File(sem.semester_id+".obj");
+            if(f.exists()) {
+                f.delete();
+
+            }
+
+            f.createNewFile();
+
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream( f));
             out.writeObject(sem);
             out.flush();
             out.close();
@@ -324,9 +363,13 @@ public class semesterData extends Thread implements Serializable{
         }
     }
     public static semesterData loadSemester(int lid){
+        if(true)
+        return semesterData.loadAsStr(lid); //Skips the object load
+
         semesterData sem = null;
         try {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream(new File(lid+".obj")));
+            File f = new File(lid+".obj");
+            ObjectInputStream in = new ObjectInputStream(new FileInputStream(f));
             sem = (semesterData) in.readObject();
             System.out.println("Loading semester: "+lid+".obj");
         }catch(Exception e4){
@@ -334,6 +377,7 @@ public class semesterData extends Thread implements Serializable{
         }
         return(sem);
     }
+
     public String toString(){
         String ret = new String();
         for( int i : sections.keySet()){
@@ -341,4 +385,43 @@ public class semesterData extends Thread implements Serializable{
         }
         return ret;
     }
+
+    public static void saveAsStr(semesterData sem){
+        try {
+            File f = new File(sem.semester_id + ".str");
+            if(f.exists())
+                f.delete();
+
+            f.createNewFile();
+            new DataOutputStream(new FileOutputStream(f)).writeUTF(sem.toString());
+        }catch(Exception e5){e5.printStackTrace();}
+
+    }
+
+    public static semesterData loadAsStr(int id){
+        semesterData ret = new semesterData(id);
+        try{
+
+            File f = (new File(id+".str"));
+            BufferedReader br = new BufferedReader(new FileReader(f));
+            String line;
+            while(( line = br.readLine()) != null){
+                String[] elems = line.split(" ");
+
+                if(elems.length != 12) //WRONG SIZE
+                    return null;
+                sectionData a =  new sectionData(Integer.parseInt(elems[0]), elems[1], elems[2], elems[3], elems[4],elems[5], Integer.parseInt(elems[6]), elems[7], elems[8], elems[9], elems[10], elems[11]);
+                ret.sections.put(a.id,a);
+                //DataInputStream in = new DataInputStream(new FileInputStream));
+                //System.out.println("STUB: NOT YET IMPLMENTED.");
+                //Scanner s = new Scanner(in.readUTF());
+                // for(String line : in.readUTF()){
+
+            }
+        }catch(Exception e6){
+            e6.printStackTrace();
+        }
+        return ret;
+    }
+
 }

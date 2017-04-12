@@ -124,14 +124,14 @@ public class scraper {
         //PhantomJsDriverManager.getInstance().setup();
         if(!run_setup) {
             //PhantomJsDriverManager.getInstance().setup();
-            ChromeDriverManager.getInstance().setup();
-            //FirefoxDriverManager.getInstance().setup();
+            //ChromeDriverManager.getInstance().setup();
+            FirefoxDriverManager.getInstance().setup();
             run_setup = true;
         }
 
-       // driver = new FirefoxDriver();
+        driver = new FirefoxDriver();
         //driver = new PhantomJSDriver();
-        driver = new ChromeDriver();
+        //driver = new ChromeDriver();
         return driver;
     }
 
@@ -139,7 +139,7 @@ public class scraper {
 
     public static void main(String[] argv){
 
-        boolean SQLFUN = false;
+        boolean SQLFUN = true;
         if(SQLFUN) {
             setup_sql();
 
@@ -148,7 +148,7 @@ public class scraper {
             semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
             //int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
 
-            testdata.sections.put(42, new sectionData(42, "tut", 01, "lATER", "Somewhere-else", 1337, "some bloke", "some better bloke.", "123", "AWE", "NOT OPEN FOR ANYONE"));
+            testdata.sections.put(42, new sectionData(42, "tut", "01", "lATER", "Somewhere-else","AROOM", 1337, "some bloke", "some better bloke.", "123", "AWE", "NOT OPEN FOR ANYONE"));
 
             if (testdata != null) {
 
@@ -158,6 +158,7 @@ public class scraper {
 
                 System.exit(0);
             }
+            System.exit(0);
         }
 
         driver = setup_driver();
@@ -168,17 +169,32 @@ public class scraper {
         //Get ready for data!
         HashMap<Integer,semesterData> sdata = new HashMap<Integer,semesterData>();
 
+        boolean MultiThread =false;
+        HashSet<Thread> threads = new HashSet<Thread>();
+
         //Get da https://en.wikipedia.org/wiki/File:DataTNG.jpg
         for(Integer semester : Semesters.keySet()){
             semesterData s = new semesterData(semester);
             semesterData r = semesterData.loadSemester(semester);
 
             if(r != null && r.complete){    //Try to load if available.
-                s=r;
+                s=r;    //TODO: Handle partal loads.
             }else {
-                s.run(driver);
+                if(MultiThread){
+                    Thread t = new Thread(s);
+                    threads.add(t);
+                    t.start();
+                }else {
+                    s.run(driver);
+                }
             }
             sdata.put(semester,s);
+        }
+
+        if(MultiThread){
+            for(Thread t : threads){
+                try{t.join();}catch(Exception e){}
+            }
         }
 
         try {
@@ -358,50 +374,64 @@ public class scraper {
             e11.printStackTrace();
         }
 
+        //
+        HashSet<String> Facultys = new HashSet<String>();
+        HashSet<String> Departments = new HashSet<String>();
+        HashMap<String,String> Fac_to_Dept = new HashMap<String,String>();
+
+
+
+        //Generate data for SQL.
+        for(int sectID : semester.sections.keySet()){
+            sectionData sect = semester.sections.get(sectID);
+
+        }
+                //Faculty (C)
+                //INSERT INTO faculty VALUES(%L) ON CONFLICT DO NOTHING, faculty
+
+                //Update Departments. (CPSC, NULL)
+                //INSERT INTO department VALUES(%L,%L) ON CONFLICT DO NOTHING,  dept, dept)
+
+                //Link Faculty to Dept (C,CPSC)
+                //"INSERT INTO faculty_contains VALUES(%L,%L) ON CONFLICT DO NOTHING", faculty, dept);
+
+                //Update Course.
+                //(NULL NULL, 471, CPSC)
+                //("INSERT INTO course VALUES(%L,%L,%L,%L) ON CONFLICT DO NOTHING", name, name, num, dept);
+
+                //Update Instructors (BLOKE)
+                //"INSERT INTO instructor VALUES(%L) ON CONFLICT DO NOTHING", name
+
         for(int sectID : semester.sections.keySet()) {
             sectionData sect = semester.sections.get(sectID);
             try {
-
-                //Update Course-Sections
-                //I THINK THE ORDER OF THIS IS WRONG.
+                //Update Course_section
+                //INSERT INTO semester VALUES(%s,%L) ON CONFLICT DO NOTHING , semester.name, semester.desc);
 
                 //("INSERT INTO course_section VALUES(%L,%s,%s,%s,%L,%s,NULL,%L,%L,%L) ON CONFLICT DO NOTHING",
                 //   type, semester_id, section.$.name, time, section.room[0], sectionId++, section.instructor, courseNum, dept);
                 PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO course_section VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING");
                 qs.setString(1, sect.type.toUpperCase());
-                qs.setString(2, String.valueOf(sect.semesterID));
-                qs.setString(3, String.valueOf(sect.subjectnum));
+                qs.setInt(2, sect.semesterID);
+                qs.setInt(3, Integer.parseInt(sect.typeNum));
                 qs.setString(4, sect.time);
                 qs.setString(5, sect.room);
-                qs.setString(6, String.valueOf(sect.semesterID));
+                qs.setInt(6, sect.id);
                 qs.setString(7, sect.TAName );
                 qs.setString(8, sect.InstructorName );
-                qs.setString(9, sect.subjectnum );
+                qs.setString(9, sect.prefixNum );
                 qs.setString(10,sect.deptName);
-
-                //Update Semesters
-                //INSERT INTO semester VALUES(%s,%L) ON CONFLICT DO NOTHING , semester.name, semester.desc);
-
-                //Update Teaching Assistants... (sigh)
-
-
-                //Update Instructors
-                //"INSERT INTO instructor VALUES(%L) ON CONFLICT DO NOTHING", name
-
-                //Update Course.
-                //("INSERT INTO course VALUES(%L,%L,%L,%L) ON CONFLICT DO NOTHING", name, name, num, dept);
-
-                //Update Departments.
-                //INSERT INTO department VALUES(%L,%L) ON CONFLICT DO NOTHING,  dept, dept)
-                //"INSERT INTO faculty_contains VALUES(%L,%L) ON CONFLICT DO NOTHING", faculty, dept);
-
-                //Faculty
-                //INSERT INTO faculty VALUES(%L) ON CONFLICT DO NOTHING, faculty
+                qs.executeQuery();
 
             } catch (Exception e12) {
                 e12.printStackTrace();
             }
         }
+                //Update Teaching Assistants... (sigh)
+
+
+
+
     }
 
 }
