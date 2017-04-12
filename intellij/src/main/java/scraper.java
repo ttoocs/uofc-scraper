@@ -443,7 +443,7 @@ public class scraper {
                 //Update Instructors (BLOKE)
                 //"INSERT INTO instructor VALUES(%L) ON CONFLICT DO NOTHING", name
                 PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO instructor VALUES(?) ON CONFLICT DO NOTHING");
-                qs.setString(teach);
+                qs.setString(1,teach);
                 qs.execute();
 
             }catch(Exception sql2){
