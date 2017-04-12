@@ -145,7 +145,11 @@ public class scraper {
 
             //semesterData testdata = semesterData.loadSemester(2161);
             //System.out.println(q.toString());
+
             semesterData testdata = new semesterData(1337);//semesterData.loadSemester(1337);
+            Semesters = new HashMap<Integer,String>();
+            Semesters.put(1337,"LEET");
+
             //int id, String type, int subjectnum, String time, String location, int semesterID, String TAName, String InstructorName, String prefixNum, String deptName,String status){
 
             testdata.sections.put(42, new sectionData(42, "tut", "01", "lATER", "Somewhere-else","AROOM", 1337, "some bloke", "some better bloke.", "123", "AWE", "NOT OPEN FOR ANYONE"));
@@ -397,6 +401,17 @@ public class scraper {
             Teachers.add(sect.InstructorName);
         }
 
+
+        try{
+            //UPDATE SEMESTERS
+            //"id int PRIMARY KEY, name text";
+            PreparedStatement qs = sqlCon.prepareStatement("INSERT INTO semester VALUES(?,?) ON CONFLICT DO NOTHING");
+            qs.setInt(1,semester.semester_id);
+            qs.setString(2,Semesters.get(semester.semester_id));
+            qs.execute();
+
+        }catch(Exception sql3){sql3.printStackTrace();}
+
         for(String dept : Departments) {
             try {
                 //Faculty (C)
@@ -465,11 +480,11 @@ public class scraper {
                 qs.setString(4, sect.time);
                 qs.setString(5, sect.room);
                 qs.setInt(6, sect.id);
-                qs.setString(7, sect.TAName );
+                qs.setString(7, null);
                 qs.setString(8, sect.InstructorName );
                 qs.setString(9, sect.prefixNum );
                 qs.setString(10,sect.deptName);
-                qs.executeQuery();
+                qs.execute();
 
             } catch (Exception e12) {
                 e12.printStackTrace();

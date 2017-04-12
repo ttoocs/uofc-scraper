@@ -393,7 +393,13 @@ public class semesterData extends Thread implements Serializable{
                 f.delete();
 
             f.createNewFile();
-            new DataOutputStream(new FileOutputStream(f)).writeUTF(sem.toString());
+
+            BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+            for(int i : sem.sections.keySet()) {
+                bw.write(sem.sections.get(i).toString()+"\n");
+            }
+            //Old method: (Gets too long and fails.)
+            //new DataOutputStream(new FileOutputStream(f)).writeUTF(sem.toString());
         }catch(Exception e5){e5.printStackTrace();}
 
     }
