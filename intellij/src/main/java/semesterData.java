@@ -389,15 +389,21 @@ public class semesterData extends Thread implements Serializable{
     public static void saveAsStr(semesterData sem){
         try {
             File f = new File(sem.semester_id + ".str");
+
+            /*
             if(f.exists())
                 f.delete();
 
             f.createNewFile();
+            */
 
             BufferedWriter bw = new BufferedWriter(new FileWriter(f));
             for(int i : sem.sections.keySet()) {
                 bw.write(sem.sections.get(i).toString()+"\n");
+
             }
+            bw.flush();
+            bw.close();
             //Old method: (Gets too long and fails.)
             //new DataOutputStream(new FileOutputStream(f)).writeUTF(sem.toString());
         }catch(Exception e5){e5.printStackTrace();}
@@ -412,7 +418,7 @@ public class semesterData extends Thread implements Serializable{
             BufferedReader br = new BufferedReader(new FileReader(f));
             String line;
             while(( line = br.readLine()) != null){
-                String[] elems = line.split(" ");
+                String[] elems = line.split("`");
 
                 if(elems.length != 12) //WRONG SIZE
                     return null;

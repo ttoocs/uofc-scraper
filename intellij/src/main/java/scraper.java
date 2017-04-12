@@ -139,7 +139,7 @@ public class scraper {
 
     public static void main(String[] argv){
 
-        boolean SQLFUN = true;
+        boolean SQLFUN = false;
         if(SQLFUN) {
             setup_sql();
 

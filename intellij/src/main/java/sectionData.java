@@ -50,7 +50,7 @@ public class sectionData implements Serializable{
     }
 
     public String toString(){
-        String delim = " ";
+        String delim = "`";
         return "SectionData"+delim+id+delim+type+delim+typeNum+delim+time+delim+location+delim+semesterID+delim+TAName+delim+InstructorName+delim+prefixNum+delim+deptName+delim+status;
     }
     //Parsable:
